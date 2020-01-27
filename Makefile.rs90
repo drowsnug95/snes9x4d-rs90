@@ -60,11 +60,6 @@ INCLUDES=
 
 OPTIMISE = -D_ZAURUS -Ofast -mips32 \
 			-ffast-math -fomit-frame-pointer -fno-strength-reduce
-OPTIMISE = -D_ZAURUS -Ofast -fdata-sections -ffunction-sections \
-    -mno-fp-exceptions -mno-check-zero-division -mframe-header-opt \
-    -fno-common -flto -fwhole-program -fsingle-precision-constant \
-    -mips32 -fno-PIC -mno-abicalls \
-    -fomit-frame-pointer -fno-builtin -fno-common
 
 CCFLAGS = $(OPTIMISE) $(PROFILE) \
 -I. \
@@ -91,10 +86,8 @@ $(CHEATDEFINES) \
 CCFLAGS  += -I.
 
 LDLIBS  = -lSDL -lz -lm
-LDLIBS  = -lc -lstdc++ -lgcc -lm -lSDL -lasound -lz -lm -no-pie \
-    -Wl,--as-needed -Wl,--gc-sections -flto -s
 
-USE_GCOV=no
+USE_GCOV=NO
 ifeq ($(USE_GCOV), YES)
 CCFLAGS += -fprofile-generate=/media/data/local/home/profile
 PROFILE += -lgcov -fprofile-generate=/media/data/local/home/profilee
