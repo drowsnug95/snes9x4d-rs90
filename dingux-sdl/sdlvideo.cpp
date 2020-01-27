@@ -100,7 +100,8 @@ void S9xInitDisplay (int /*argc*/, char ** /*argv*/)
 	SDL_ShowCursor(SDL_DISABLE);
 
 	//screen = SDL_SetVideoMode(xs, ys, 16, SDL_HWSURFACE|SDL_DOUBLEBUF);
-	{
+    {
+        /*
 		int i = 0; // 0 - 320x240, 1 - 400x240, 2 - 480x272
 		int surfacewidth, surfaceheight;
 		#define NUMOFVIDEOMODES 3
@@ -116,14 +117,16 @@ void S9xInitDisplay (int /*argc*/, char ** /*argv*/)
 
 		// check 3 videomodes: 480x272, 400x240, 320x240
 		for(i = NUMOFVIDEOMODES-1; i >= 0; i--) {
-			if(SDL_VideoModeOK(vm[i].x, vm[i].y, 16, SDL_HWSURFACE|SDL_DOUBLEBUF) != 0) {
+			if(SDL_VideoModeOK(vm[i].x, vm[i].y, 16, SDL_HWSURFACE) != 0) {
 				surfacewidth = vm[i].x;
 				surfaceheight = vm[i].y;
 				upscale_p = vm[i].p;
 				break;
 			}
 		}
-		screen = SDL_SetVideoMode(surfacewidth, surfaceheight, 16, SDL_HWSURFACE|SDL_DOUBLEBUF);
+        */
+		//screen = SDL_SetVideoMode(surfacewidth, surfaceheight, 16, SDL_HWSURFACE|SDL_DOUBLEBUF);
+        screen = SDL_SetVideoMode(240, 160, 16, SDL_HWSURFACE);
 	}
 
 	if (screen == NULL)

@@ -32,11 +32,14 @@ void show_screenshot(void);
 void capt_screenshot(void);
 void menu_dispupdate(void);
 void ShowCredit(void);
+int CurrentButton(int);
+int NectButton(int);
+int PrevButton(int);
 
-int cursor = 3;
+int cursor = 2;
 int loadcursor = 0;
 int romcount_maxrows = 16;
-
+int remapbuttons = 0;
 char SaveSlotNum_old=255;
 bool8_32 highres_current = FALSE;
 char snapscreen[17120]={};
@@ -127,7 +130,7 @@ void loadmenu_dispupdate(int romcount)
 #elif CYGWIN32
 	strcpy(disptxt[0],"  Snes9x4W v20101010");
 #else
-	strcpy(disptxt[0],"  Snes9x4D v20101010 for OpenDingux");
+	sprintf(disptxt[0],"  Snes9x4D for OpenDingux build %d",__DATE__);
 #endif
 
 	//copy roms filenames to disp[] cache
@@ -200,39 +203,6 @@ char* menu_romselector()
 
 		while(SDL_PollEvent(&event)==1)
 		{
-#ifdef CAANOO
-			// CAANOO -------------------------------------------------------------
-			keyssnes = SDL_JoystickOpen(0);
-			if ( (SDL_JoystickGetAxis(keyssnes, 1) < -16384) || SDL_JoystickGetButton(keyssnes, sfc_key[START_1]) )
-				loadcursor--;
-			else if( (SDL_JoystickGetAxis(keyssnes, 1) > 16384) || SDL_JoystickGetButton(keyssnes, sfc_key[SELECT_1]) )
-				loadcursor++;
-//			else if ( SDL_JoystickGetButton(keyssnes, sfc_key[L_1]) )
-//				loadcursor=loadcursor-10;
-//			else if ( SDL_JoystickGetButton(keyssnes, sfc_key[R_1]) )
-//				loadcursor=loadcursor+10;
-			else if ( SDL_JoystickGetButton(keyssnes, sfc_key[QUIT]) )
-				S9xExit();
-			else if( SDL_JoystickGetButton(keyssnes, sfc_key[A_1]) ||
-					(SDL_JoystickGetAxis(keyssnes, 0) < -16384) ||
-					(SDL_JoystickGetAxis(keyssnes, 0) > 16384)
-					)
-			{
-					switch(loadcursor)
-					{
-						default:
-							if ( SDL_JoystickGetButton(keyssnes, sfc_key[A_1]) )
-							{
-								if ((loadcursor>=0) && (loadcursor<(romcount)))
-								{
-									rom_filename=namelist[loadcursor]->d_name;
-									exit_loop = TRUE;
-								}
-							}
-							break;
-					}
-			}
-#else
 			// DINGOO & WIN32 -----------------------------------------------------
 			keyssnes = SDL_GetKeyState(NULL);
 			switch(event.type)
@@ -273,7 +243,6 @@ char* menu_romselector()
 					}
 					break;
 			}
-#endif
 
 			if(loadcursor==-1)
 			{
@@ -284,17 +253,11 @@ char* menu_romselector()
 			{
 				loadcursor=0;
 			}
-
 			break;
 		}
 	}
-#ifdef CAANOO
-	while( exit_loop!=TRUE && SDL_JoystickGetButton(keyssnes, sfc_key[QUIT])!=TRUE );
-#elif CYGWIN32
-	while( exit_loop!=TRUE && keyssnes[sfc_key[SELECT_1]] != SDL_PRESSED );
-#else
+
 	while( exit_loop!=TRUE && keyssnes[sfc_key[B_1]] != SDL_PRESSED );
-#endif
 
 	// TODO:
 	///free(). 	namelist
@@ -311,91 +274,77 @@ char* menu_romselector()
 
 void menu_dispupdate(void)
 {
-	static char *Rates[8] = { "off", "8192", "11025", "16000", "22050", "32000", "44100", "48000" };
-//	char temp[256];
-//	char disptxt[20][256];
-
+	char *Rates[8] = { "  OFF", " 8192", "11025", "16000", "22050", "32000", "44100", "48000" };
+    char *Button[15] ={\
+        "[A]B L R STA SEL",\
+        " A[B]L R STA SEL", "  NONE","  NONE",\
+        " A B[L]R STA SEL",\
+        " A B L[R]STA SEL", "  NONE","  NONE","  NONE","  NONE","  NONE","  NONE",\
+        " A B L R[STA]SEL",\
+        " A B L R STA[SEL]",\
+        " A B L R STA SEL "};
+    
 	//memset(GFX.Screen + 320*12*2,0x11,320*200*2);
 	for(int y=12;y<=212;y++){
 		for(int x=10;x<246*2;x+=2){
 			memset(GFX.Screen + GFX.Pitch*y+x,0x11,2);
 		}	
 	}
-#if CAANOO
-	strcpy(disptxt[0],"Snes9x4C v20101010");
-#elif CYGWIN32
-	strcpy(disptxt[0],"Snes9x4W v20101010");
-#else
-	strcpy(disptxt[0],"Snes9x4D v20101010 for OpenDingux");
-#endif
-	strcpy(disptxt[1],"");
-	strcpy(disptxt[2],"Reset Game           ");
-	strcpy(disptxt[3],"Save State           ");
-	strcpy(disptxt[4],"Load State           ");
-	strcpy(disptxt[5],"State Slot              No.");
-	strcpy(disptxt[6],"Display Frame Rate     ");
-	strcpy(disptxt[7],"Transparency           ");
-	strcpy(disptxt[8],"Full Screen         ");
-	strcpy(disptxt[9],"Frameskip              ");
-	strcpy(disptxt[10],"Sound Rate           ");
-	strcpy(disptxt[11],"Credit              ");
-	strcpy(disptxt[12],"Exit");
+    if(remapbuttons==0){
+        sprintf(disptxt[0],"Snes9x4D for RS-90");
+        strcpy(disptxt[1],"----------------------------");
+        strcpy(disptxt[2],"Reset Game           ");
+        strcpy(disptxt[3],"Save State           ");
+        strcpy(disptxt[4],"Load State           ");
+        sprintf(disptxt[5],"State Slot              No.%d",SaveSlotNum);
+        sprintf(disptxt[6],"Show FPS                 %s",(Settings.DisplayFrameRate ? " ON":"OFF"));
+        sprintf(disptxt[7],"Transparency             %s",(Settings.Transparency ? " ON":"OFF"));
+        sprintf(disptxt[8],"Video Mode          %s",(Scale ? "224 Line" : "208 Line"));
+        strcpy(disptxt[9],"Frameskip              ");
+        sprintf(disptxt[10],"Sound Rate             %s",Rates[Settings.SoundPlaybackRate]);
+        strcpy(disptxt[11],"Remap Buttons        ");
+        strcpy(disptxt[12],"Credit              ");
+        strcpy(disptxt[13],"Exit Game");
 
-	sprintf(temp,"%s%d",disptxt[5],SaveSlotNum);
-	strcpy(disptxt[5],temp);
-
-	if(Settings.DisplayFrameRate)
-		sprintf(temp,"%s True",disptxt[6]);
-	else
-		sprintf(temp,"%sFalse",disptxt[6]);
-	strcpy(disptxt[6],temp);
-	
-	if(Settings.Transparency)
-		sprintf(temp,"%s   On",disptxt[7]);
-	else
-		sprintf(temp,"%s  Off",disptxt[7]);
-	strcpy(disptxt[7],temp);
-
-	if(Scale)
-		sprintf(temp,"%s    True",disptxt[8]);
-	else
-		sprintf(temp,"%s   False",disptxt[8]);
-	strcpy(disptxt[8],temp);
-
-	if (Settings.SkipFrames == AUTO_FRAMERATE)
-	{
-		sprintf(temp,"%s Auto",disptxt[9]);
-		strcpy(disptxt[9],temp);
-	}
-	else
-	{
-		sprintf(temp,"%s %02d/%d",disptxt[9],(int) Memory.ROMFramesPerSecond, Settings.SkipFrames);
-		strcpy(disptxt[9],temp);
-	}
-
-	sprintf(temp,"%s  %s",disptxt[10], Rates[Settings.SoundPlaybackRate]);
-	strcpy(disptxt[10],temp);
-
-#ifdef DINGOO
-	for(int i=0;i<=14;i++)
-#else
-	for(int i=0;i<=12;i++)
-#endif
+        if (Settings.SkipFrames == AUTO_FRAMERATE)
+            sprintf(temp,"%s AUTO",disptxt[9]);
+        else
+            sprintf(temp,"%s %02d/%d",disptxt[9],(int) Memory.ROMFramesPerSecond, Settings.SkipFrames);
+        strcpy(disptxt[9],temp);
+    }
+    else{
+        sprintf(disptxt[0],"Remap Buttons");
+        strcpy(disptxt[1], "----------------------------");
+        strcpy(disptxt[2],  "[SNES]         [RS-90]");
+        sprintf(disptxt[3], "A Button      %s",Button[CurrentButton(sfc_key[A_1])]);
+        sprintf(disptxt[4], "B Button      %s",Button[CurrentButton(sfc_key[B_1])]);
+        sprintf(disptxt[5], "X Button      %s",Button[CurrentButton(sfc_key[X_1])]);
+        sprintf(disptxt[6], "Y Button      %s",Button[CurrentButton(sfc_key[Y_1])]);
+        sprintf(disptxt[7], "L Button      %s",Button[CurrentButton(sfc_key[L_1])]);
+        sprintf(disptxt[8], "R Button      %s",Button[CurrentButton(sfc_key[R_1])]);
+        sprintf(disptxt[9], "START Button  %s",Button[CurrentButton(sfc_key[START_1])]);
+        sprintf(disptxt[10],"SELECT Button %s",Button[CurrentButton(sfc_key[SELECT_1])]);
+        sprintf(disptxt[11],"Reset to Default    ");        
+        sprintf(disptxt[12], "       ");
+        strcpy(disptxt[13], "Return to Menu         ");
+    }
+                
+    for(int i=0;i<=13;i++)
 	{
 		if(i==cursor)
-			sprintf(temp," >%s",disptxt[i]);
+			sprintf(temp,"  >%s",disptxt[i]);
 		else
-			sprintf(temp,"  %s",disptxt[i]);
+			sprintf(temp,"   %s",disptxt[i]);
 		strcpy(disptxt[i],temp);
 
-		S9xDisplayString (disptxt[i], GFX.Screen, GFX.Pitch ,i*10+64);
+		S9xDisplayString (disptxt[i], GFX.Screen, GFX.Pitch ,i*10+84);
 	}
 
 	//show screen shot for snapshot
 	if(SaveSlotNum_old != SaveSlotNum)
 	{
-		strcpy(temp,"Loading...");
-		S9xDisplayString (temp, GFX.Screen + 280, GFX.Pitch, 210/*204*/);
+		//strcpy(temp,"LOADING...");
+		//S9xDisplayString (temp, GFX.Screen + 280, GFX.Pitch, 210);
 		menu_flip();
 		char fname[256], ext[8];
 		sprintf(ext, ".s0%d", SaveSlotNum);
@@ -403,8 +352,86 @@ void menu_dispupdate(void)
 		load_screenshot(fname);
 		SaveSlotNum_old = SaveSlotNum;
 	}
-	show_screenshot();
+    if(remapbuttons==0){
+        if(cursor==3 | cursor==4 | cursor==5) 
+            show_screenshot();
+    }
 	menu_flip();
+}
+
+/*
+#define A_1 0
+#define B_1 1
+#define X_1 2
+#define Y_1 3
+#define L_1 4
+#define R_1 5
+#define START_1 12
+#define SELECT_1 13
+#define DINGOO_BUTTON_R             8
+#define DINGOO_BUTTON_L             9
+#define DINGOO_BUTTON_A             306
+#define DINGOO_BUTTON_B             308
+#define DINGOO_BUTTON_X             32
+#define DINGOO_BUTTON_Y             304
+#define DINGOO_BUTTON_SELECT        27
+#define DINGOO_BUTTON_START         13
+#define DINGOO_BUTTON_END           0
+*/
+int CurrentButton(int button){
+    int ret=14;
+    if (button==DINGOO_BUTTON_A)
+            ret=0;
+    else if(button==DINGOO_BUTTON_B)
+        ret=1;
+    else if(button==DINGOO_BUTTON_L)
+        ret=4;
+    else if(button==DINGOO_BUTTON_R)
+        ret=5;
+    else if(button==DINGOO_BUTTON_START)
+        ret=12;
+    else if(button==DINGOO_BUTTON_SELECT)
+        ret=13;
+
+    return ret;
+}
+
+int NextButton(int button){
+    int ret=button;
+    if(button==DINGOO_BUTTON_A)
+        ret = DINGOO_BUTTON_B;
+    else if(button==DINGOO_BUTTON_B)
+        ret =DINGOO_BUTTON_L;
+    else if (button==DINGOO_BUTTON_L)
+            ret = DINGOO_BUTTON_R;
+    else if(button==DINGOO_BUTTON_R)
+        ret = DINGOO_BUTTON_START;
+    else if(button==DINGOO_BUTTON_START)
+        ret = DINGOO_BUTTON_SELECT;
+    else if(button==DINGOO_BUTTON_SELECT)
+        ret = 14;
+    else
+        ret = DINGOO_BUTTON_A;
+    return ret;
+}
+
+int PrevButton(int button){
+    int ret=button;
+    if(button==DINGOO_BUTTON_A)
+        ret = 14;
+    else if(button==DINGOO_BUTTON_B)
+        ret =DINGOO_BUTTON_A;
+    else if (button==DINGOO_BUTTON_L)
+            ret = DINGOO_BUTTON_B;
+    else if(button==DINGOO_BUTTON_R)
+        ret = DINGOO_BUTTON_L;
+    else if(button==DINGOO_BUTTON_START)
+        ret = DINGOO_BUTTON_R;
+    else if(button==DINGOO_BUTTON_SELECT)
+        ret = DINGOO_BUTTON_START;
+    else
+        ret = DINGOO_BUTTON_SELECT;
+    return ret;
 }
 
 void menu_loop(void)
@@ -414,11 +441,7 @@ void menu_loop(void)
 	char fname[256], ext[8];
 	char snapscreen_tmp[17120];
 
-#ifdef CAANOO
-	SDL_Joystick* keyssnes = 0;
-#else
 	uint8 *keyssnes = 0;
-#endif
 
 	SaveSlotNum_old = -1;
 
@@ -440,140 +463,46 @@ void menu_loop(void)
 	{
 		while(SDL_PollEvent(&event)==1)
 		{
-#ifdef CAANOO
-				keyssnes = SDL_JoystickOpen(0);
-				// CAANOO -------------------------------------------------------------
-				if ( (SDL_JoystickGetAxis(keyssnes, 1) < -16384) || SDL_JoystickGetButton(keyssnes, sfc_key[START_1]) )
-					cursor--;
-				else if( (SDL_JoystickGetAxis(keyssnes, 1) > 16384) || SDL_JoystickGetButton(keyssnes, sfc_key[SELECT_1]) )
-					cursor++;
-				else if( SDL_JoystickGetButton(keyssnes, sfc_key[A_1]) ||
-						(SDL_JoystickGetAxis(keyssnes, 0) < -16384) ||
-						(SDL_JoystickGetAxis(keyssnes, 0) > 16384)
-						)
-				{
-					switch(cursor)
-					{
-						case 2:
-							if ( SDL_JoystickGetButton(keyssnes, sfc_key[A_1]) )
-							{
-								S9xReset();
-								exit_loop = TRUE;
-							}
-						break;
-						case 3:
-							if ( SDL_JoystickGetButton(keyssnes, sfc_key[A_1]) )
-							{
-								memcpy(snapscreen,snapscreen_tmp,16050);
-								show_screenshot();
-								strcpy(fname," Saving...");
-								S9xDisplayString (fname, GFX.Screen +280, GFX.Pitch, 204);
-								menu_flip();
-								sprintf(ext, ".s0%d", SaveSlotNum);
-								strcpy(fname, S9xGetFilename (ext));
-								save_screenshot(fname);
-								sprintf(ext, ".00%d", SaveSlotNum);
-								strcpy(fname, S9xGetFilename (ext));
-								S9xFreezeGame (fname);
-								sync();
-								exit_loop = TRUE;
-							}
-						break;
-						case 4:
-							if ( SDL_JoystickGetButton(keyssnes, sfc_key[A_1]) )
-							{
-								sprintf(ext, ".00%d", SaveSlotNum);
-								strcpy(fname, S9xGetFilename (ext));
-								S9xLoadSnapshot (fname);
-								exit_loop = TRUE;
-							}
-						break;
-						case 5:
-							if ( SDL_JoystickGetAxis(keyssnes, 0) < -16384 )
-								SaveSlotNum--;
-							else if (SDL_JoystickGetAxis(keyssnes, 0) > 16384)
-								SaveSlotNum++;
-
-							if(SaveSlotNum>=3)
-								SaveSlotNum=3;			//0
-							else if(SaveSlotNum<=0)
-								SaveSlotNum=0;			//3
-						break;
-						case 6:
-							Settings.DisplayFrameRate = !Settings.DisplayFrameRate;
-						break;
-						case 7:
-							Settings.Transparency = !Settings.Transparency;
-						break;
-						case 8:
-							Scale = !Scale;
-						break;
-						case 9:
-							if (Settings.SkipFrames == AUTO_FRAMERATE)
-								Settings.SkipFrames = 10;
-	
-							if ( SDL_JoystickGetAxis(keyssnes, 0) < -16384 )
-								Settings.SkipFrames--;
-							else if (SDL_JoystickGetAxis(keyssnes, 0) > 16384)
-								Settings.SkipFrames++;
-	
-							if(Settings.SkipFrames>=10)
-								Settings.SkipFrames = AUTO_FRAMERATE;
-							else if (Settings.SkipFrames<=1)
-								Settings.SkipFrames = 1;
-						break;
-						case 10:
-							if ( SDL_JoystickGetAxis(keyssnes, 0) < -16384 )
-								vol -= 10;
-							else if (SDL_JoystickGetAxis(keyssnes, 0) > 16384)
-								vol += 10;
-
-							if(vol>=100)
-							{
-								vol = 100;
-							}
-							else if (vol <=0)
-							{
-								vol = 0;
-							}
-						break;
-						case 11:
-							if ( SDL_JoystickGetButton(keyssnes, sfc_key[A_1]) )
-								ShowCredit();
-						break;
-						case 12:
-							if ( SDL_JoystickGetButton(keyssnes, sfc_key[A_1]) )
-								S9xExit();
-						break;
-					}
-				}
-#else
-				// DINGOO & WIN32 -----------------------------------------------------
 				keyssnes = SDL_GetKeyState(NULL);
-
-				if(keyssnes[sfc_key[UP_1]] == SDL_PRESSED)
+            
+				if(keyssnes[DINGOO_BUTTON_UP] == SDL_PRESSED)
 					cursor--;
-				else if(keyssnes[sfc_key[DOWN_1]] == SDL_PRESSED)
+				else if(keyssnes[DINGOO_BUTTON_DOWN] == SDL_PRESSED)
 					cursor++;
-				else if( (keyssnes[sfc_key[A_1]] == SDL_PRESSED) ||
-						 (keyssnes[sfc_key[LEFT_1]] == SDL_PRESSED) ||
-						 (keyssnes[sfc_key[RIGHT_1]] == SDL_PRESSED) )
+                else if ((keyssnes[DINGOO_BUTTON_B] == SDL_PRESSED))
+                {
+                    if(remapbuttons){
+                        cursor =11;
+                        remapbuttons=0;
+                        do{
+                            SDL_Event event;
+                            SDL_PollEvent(&event);
+                            keyssnes = SDL_GetKeyState(NULL);
+                            sys_sleep(10000);
+                        }
+                        while(keyssnes[DINGOO_BUTTON_B] == SDL_PRESSED);
+                    }
+                }
+				else if( (keyssnes[DINGOO_BUTTON_A] == SDL_PRESSED) ||
+						 (keyssnes[DINGOO_BUTTON_LEFT] == SDL_PRESSED) ||
+						 (keyssnes[DINGOO_BUTTON_RIGHT] == SDL_PRESSED) )
 				{
-					switch(cursor)
-					{
+                    if(remapbuttons==0){
+                        switch(cursor)
+                        {
 						case 2:
-							if ((keyssnes[sfc_key[A_1]] == SDL_PRESSED))
+							if ((keyssnes[DINGOO_BUTTON_A] == SDL_PRESSED))
 							{
 								S9xReset();
 								exit_loop = TRUE;
 							}
 						break;
 						case 3:
-							if (keyssnes[sfc_key[A_1]] == SDL_PRESSED)
+							if (keyssnes[DINGOO_BUTTON_A] == SDL_PRESSED)
 							{
 								memcpy(snapscreen,snapscreen_tmp,16050);
 								show_screenshot();
-								strcpy(fname," Saving...");
+								strcpy(fname," SAVING...");
 								S9xDisplayString (fname, GFX.Screen +280, GFX.Pitch, 204);
 								menu_flip();
 								sprintf(ext, ".s0%d", SaveSlotNum);
@@ -587,7 +516,7 @@ void menu_loop(void)
 							}
 						break;
 						case 4:
-							if (keyssnes[sfc_key[A_1]] == SDL_PRESSED)
+							if (keyssnes[DINGOO_BUTTON_A] == SDL_PRESSED)
 							{
 								sprintf(ext, ".00%d", SaveSlotNum);
 								strcpy(fname, S9xGetFilename (ext));
@@ -596,31 +525,31 @@ void menu_loop(void)
 							}
 						break;
 						case 5:
-							if (keyssnes[sfc_key[LEFT_1]] == SDL_PRESSED)
+							if (keyssnes[DINGOO_BUTTON_LEFT] == SDL_PRESSED)
 								SaveSlotNum--;
 							else
-							if (keyssnes[sfc_key[RIGHT_1]] == SDL_PRESSED)
+							if (keyssnes[DINGOO_BUTTON_RIGHT] == SDL_PRESSED)
 								SaveSlotNum++;
 
 							if(SaveSlotNum>=3)
-								SaveSlotNum=3;		//3
+								SaveSlotNum=3;
 							else if(SaveSlotNum<=0)
-								SaveSlotNum=0;		//3
+								SaveSlotNum=0;
 						break;
-						case 6:
+						case 6: //Toggle Show FPS
 							Settings.DisplayFrameRate = !Settings.DisplayFrameRate;
 						break;
-						case 7:
+						case 7: //Toggle Transparency
 							Settings.Transparency = !Settings.Transparency;
 						break;
-						case 8:
+						case 8: //Toggle Video Mode
 							Scale = !Scale;
 						break;
 						case 9:
 							if (Settings.SkipFrames == AUTO_FRAMERATE)
 								Settings.SkipFrames = 10;
 	
-							if (keyssnes[sfc_key[LEFT_1]] == SDL_PRESSED)
+							if (keyssnes[DINGOO_BUTTON_LEFT] == SDL_PRESSED)
 								Settings.SkipFrames--;
 							else
 								Settings.SkipFrames++;
@@ -631,27 +560,83 @@ void menu_loop(void)
 								Settings.SkipFrames = 1;
 						break;
 						case 10:
-							if (keyssnes[sfc_key[LEFT_1]] == SDL_PRESSED) {
+							if (keyssnes[DINGOO_BUTTON_LEFT] == SDL_PRESSED) {
 								Settings.SoundPlaybackRate = (Settings.SoundPlaybackRate - 1) & 7;
-							} else if (keyssnes[sfc_key[RIGHT_1]] == SDL_PRESSED) {
+							} else if (keyssnes[DINGOO_BUTTON_RIGHT] == SDL_PRESSED) {
 								Settings.SoundPlaybackRate = (Settings.SoundPlaybackRate + 1) & 7;
 							}
 						break;
-						case 11:
-							if (keyssnes[sfc_key[A_1]] == SDL_PRESSED)
+						case 11: //Goto Remap Button Menu
+							if (keyssnes[DINGOO_BUTTON_A] == SDL_PRESSED)
+                            {
+                                cursor = 2;
+								remapbuttons=1;
+                            }
+                        break;
+						case 12:
+							if (keyssnes[DINGOO_BUTTON_A] == SDL_PRESSED)
 								ShowCredit();
 						break;
-						case 12:
-							if (keyssnes[sfc_key[A_1]] == SDL_PRESSED)
+						case 13:
+							if (keyssnes[DINGOO_BUTTON_A] == SDL_PRESSED)
 								S9xExit();
 						break;
-					}
+                        } //switch(cursor)
+                    }
+                    else{ //in RemapButton menu   
+                        switch(cursor)
+                        {
+                        #define SETKEY(KEY) \
+                        {\
+                            if (keyssnes[DINGOO_BUTTON_LEFT] == SDL_PRESSED) \
+                                sfc_key[KEY]=PrevButton(sfc_key[KEY]);\
+                            else sfc_key[KEY]=NextButton(sfc_key[KEY]);\
+                        }
+                        case 3: //A Button
+                            SETKEY(A_1);
+                        break;
+                        case 4: //B Button
+                            SETKEY(B_1);
+                        break;
+                        case 5: //X Button
+                            SETKEY(X_1);
+                        break;
+                        case 6: //Y Button
+                            SETKEY(Y_1);
+                        break;
+                        case 7: //L Button
+                             SETKEY(L_1);
+                       break;
+                        case 8: //R Button
+                            SETKEY(R_1);
+                        break;
+                        case 9: //START Button
+                             SETKEY(START_1);
+                       break;
+                        case 10: //SELECT Button
+                            SETKEY(SELECT_1);
+                        break;
+                        case 11://reset to default
+                            sfc_key[A_1] = DINGOO_BUTTON_A;
+                            sfc_key[B_1] = DINGOO_BUTTON_B;
+                            sfc_key[X_1] = DINGOO_BUTTON_X;
+                            sfc_key[Y_1] = DINGOO_BUTTON_Y;
+                            sfc_key[L_1] = DINGOO_BUTTON_L;
+                            sfc_key[R_1] = DINGOO_BUTTON_R;
+                            sfc_key[START_1] = DINGOO_BUTTON_START;
+                            sfc_key[SELECT_1] = DINGOO_BUTTON_SELECT;
+                        break;
+                        case 13: //exit to menu
+                            cursor=11;
+                            remapbuttons=0;
+                        break;
+                        }
+                    }
 				}
-#endif
 
 				if(cursor==1)
-					cursor=12;	//11
-				else if(cursor==13)	//12
+					cursor=13;	//11
+				else if(cursor==14)	//12
 					cursor=2;
 				
 				menu_dispupdate();
@@ -660,11 +645,7 @@ void menu_loop(void)
 				break;
 		}
 	}
-#ifdef CAANOO
-	while( exit_loop!=TRUE && SDL_JoystickGetButton(keyssnes, sfc_key[QUIT])!=TRUE );
-#else
-	while( exit_loop!=TRUE && keyssnes[sfc_key[B_1]] != SDL_PRESSED );
-#endif
+	while( exit_loop!=TRUE && keyssnes[DINGOO_BUTTON_B] != SDL_PRESSED );
 
 	Settings.SupportHiRes=highres_current;
 	S9xDeinitDisplay();
@@ -770,23 +751,24 @@ void ShowCredit()
 	"",
 	"",
 	"                                     ",
-	" Thank you using this Emulator!      ",
+	"  Thank you for playing Snes9X4D!",
 	"                                     ",
+	"[overwritten below]",
 	"",
 	"",
 	"",
 	"",
 	"",
 	"",
+	"   by Drowsnug",
+	"     drowsnug95.wordpress.com",
 	"",
-	" by SiENcE",
-	" crankgaming.blogspot.com",
-	"",
-	" regards to joyrider & g17",
-	"",
+	"  regards to joyrider & SiENcE &      ",
+	"                   dmitrysmagin      ",
 	"",
 	};
-
+    sprintf(disptxt[8],"   (build on %s %s)",__DATE__,__TIME__);
+    
 	do
 	{
 		SDL_Event event;
@@ -797,7 +779,6 @@ void ShowCredit()
 #else
 		keyssnes = SDL_GetKeyState(NULL);
 #endif
-
 		for(int y=12; y<=212; y++){
 			for(int x=10; x<246*2; x+=2){
 				memset(GFX.Screen + GFX.Pitch*y+x,0x11,2);
@@ -817,14 +798,22 @@ void ShowCredit()
 		}
 		if(line == 20) line = 0;
 		menu_flip();
-		sys_sleep(3000);
+		sys_sleep(10000);
 	}
 #ifdef CAANOO
 	while( SDL_JoystickGetButton(keyssnes, sfc_key[B_1])!=TRUE );
 #else
-	while(keyssnes[sfc_key[B_1]] != SDL_PRESSED);
+	while(keyssnes[DINGOO_BUTTON_B] != SDL_PRESSED);
 #endif
-
+    
+    do{
+        SDL_Event event;
+		SDL_PollEvent(&event);
+        keyssnes = SDL_GetKeyState(NULL);
+        sys_sleep(10000);
+    }
+    while(keyssnes[DINGOO_BUTTON_B] == SDL_PRESSED);
+    
 	return;
 }
 

@@ -86,6 +86,8 @@ static void sync() { }
 	uint8 *keyssnes;
 #endif
 
+Uint16 sfc_key[256];
+
 #ifdef NETPLAY_SUPPORT
 	static uint32	joypads[8];
 	static uint32	old_joypads[8];
@@ -94,7 +96,7 @@ static void sync() { }
 // SaveSlotNumber
 char SaveSlotNum = 0;
 
-bool8_32 Scale = FALSE;
+bool8_32 Scale = FALSE; //TRUE;
 char msg[256];
 short vol=50;
 static int mixerdev = 0;
@@ -226,6 +228,7 @@ void S9xWriteConfig()
 	if(!fp) return;
 	fwrite(&Settings, 1, sizeof(Settings), fp);
 	fwrite(&Scale, 1, sizeof(Scale), fp);
+    fwrite(&sfc_key,1,sizeof(sfc_key), fp); // Write Button remap settings
 	fclose(fp);
 }
 
@@ -243,6 +246,7 @@ void S9xReadConfig()
 	}
 	fread(&Settings, 1, sizeof(Settings), fp);
 	fread(&Scale, 1, sizeof(Scale), fp);
+    fread(&sfc_key,1,sizeof(sfc_key), fp); //read button remap settings
 	fclose(fp);
 }
 
@@ -284,7 +288,7 @@ int main (int argc, char **argv)
 	Settings.MultiPlayer5 = FALSE;
 	Settings.ControllerOption = SNES_MULTIPLAYER5;
 	Settings.ControllerOption = 0;
-	Settings.Transparency = FALSE; //TRUE;
+	Settings.Transparency = TRUE;
 	Settings.SixteenBit = TRUE;
 	Settings.SupportHiRes = FALSE; //autodetected for known highres roms
 	Settings.NetPlay = FALSE;
@@ -303,7 +307,7 @@ int main (int argc, char **argv)
 	rom_filename = S9xParseArgs (argv, argc);
 	printf("Rom filename: %s\n", rom_filename);
 
-	S9xReadConfig();
+	//S9xReadConfig();
 
 	Settings.HBlankStart = (256 * Settings.H_Max) / SNES_HCOUNTER_MAX;
 
@@ -392,6 +396,7 @@ int main (int argc, char **argv)
 	}
 
 	S9xInitInputDevices ();
+    S9xReadConfig();
 
 	CPU.Flags = saved_flags;
 	Settings.StopEmulation = FALSE;
@@ -441,15 +446,7 @@ int main (int argc, char **argv)
 #endif
 
 	//Handheld Key Infos
-#ifdef CAANOO
-	sprintf(msg,"Press HOME to Show MENU");
-#elif CYGWIN32
-	sprintf(msg,"Press ESC+LALT to Show MENU");
-#else
-	sprintf(msg,"Press SELECT+START to Show MENU");
-#endif
-	S9xSetInfoString(msg);
-
+	//S9xSetInfoString(" Press SELECT+START");
 	//load Snapshot
 	if (snapshot_filename)
 	{
@@ -599,7 +596,7 @@ void S9xExit()
 	exit (0);
 }
 
-Uint16 sfc_key[256];
+
 void S9xInitInputDevices ()
 {
 #ifdef CAANOO
@@ -610,23 +607,6 @@ void S9xInitInputDevices ()
 
 	memset(sfc_key, 0, 256);
 
-#ifdef CAANOO
-	// Caanoo mapping
-	sfc_key[A_1] = CAANOO_BUTTON_B;	//Snes A
-	sfc_key[B_1] = CAANOO_BUTTON_X;	//Snes B
-	sfc_key[X_1] = CAANOO_BUTTON_Y;	//Snes X
-	sfc_key[Y_1] = CAANOO_BUTTON_A;	//Snes Y
-	sfc_key[L_1] = CAANOO_BUTTON_L;
-	sfc_key[R_1] = CAANOO_BUTTON_R;
-	sfc_key[START_1] = CAANOO_BUTTON_HELP1;
-	sfc_key[SELECT_1] = CAANOO_BUTTON_HELP2;
-	sfc_key[LEFT_1] = CAANOO_BUTTON_LEFT;
-	sfc_key[RIGHT_1] = CAANOO_BUTTON_RIGHT;
-	sfc_key[UP_1] = CAANOO_BUTTON_UP;
-	sfc_key[DOWN_1] = CAANOO_BUTTON_DOWN;
-
-	sfc_key[QUIT] = CAANOO_BUTTON_HOME;
-#else
 	// Dingoo mapping
 	sfc_key[A_1] = DINGOO_BUTTON_A;
 	sfc_key[B_1] = DINGOO_BUTTON_B;
@@ -640,7 +620,6 @@ void S9xInitInputDevices ()
 	sfc_key[RIGHT_1] = DINGOO_BUTTON_RIGHT;
 	sfc_key[UP_1] = DINGOO_BUTTON_UP;
 	sfc_key[DOWN_1] = DINGOO_BUTTON_DOWN;
-#endif
 
 	int i = 0;
 	char *envp, *j;
@@ -697,7 +676,7 @@ const char *S9xGetSnapshotDirectory ()
 		const char *home = GetHomeDirectory ();
 		strcpy (filename, home);
 		strcat (filename, SLASH_STR);
-		strcat (filename, ".snes96_snapshots");
+		strcat (filename, ".snes9x4d");
 		mkdir (filename
 		#ifndef WIN32
 		, 0777
@@ -831,7 +810,7 @@ bool8_32 S9xDeinitUpdate (int Width, int Height)
 
 	if (Settings.SupportHiRes)
 	{
-		if (Width > 256)
+		if (Width > 256) //This may not implemet for RS-90
 		{
 			// If SupportHiRes is active and HighRes Frame
 			uint16 *dp16 = (uint16 *)(screen->pixels) + dpo*2;
@@ -846,36 +825,31 @@ bool8_32 S9xDeinitUpdate (int Width, int Height)
 		else
 		{
 			if(Scale) {
-				// put here upscale to 400x240 and 480x272
-				(*upscale_p)((uint32_t *)screen->pixels, (uint32_t *)GFX.Screen, 512); 
-			} else goto __jump;
+				downscale_224to160((uint32_t *)screen->pixels, (uint32_t *)GFX.Screen, 512);  
+			} else {
+				downscale_208to160((uint32_t *)screen->pixels, (uint32_t *)GFX.Screen, 512);
+            }
 		}
 	}
 	else
 	{
 		// if scaling for non-highres (is centered)
 		if(Scale) {
-			// put here upscale to 400x240 and 480x272
-			(*upscale_p)((uint32_t *)screen->pixels, (uint32_t *)GFX.Screen, 256); 
-
+			downscale_224to160((uint32_t *)screen->pixels, (uint32_t *)GFX.Screen, 256); 
 		} else {
-		__jump:
-			uint32 *dp32 = (uint32 *)(screen->pixels) + dpo;
-			uint32 *sp32 = (uint32 *)(GFX.Screen);
-			for(int y = 224; y--;) {
-				for(int x = 256/2; x--; ) {
-					*dp32++ = *sp32++;
-				}
-				sp32 += spd;
-				dp32 += dpd;
-			}
+			downscale_208to160((uint32_t *)screen->pixels, (uint32_t *)GFX.Screen, 256); 
 		}
 	}
 
 	if (GFX.InfoString)
-		S9xDisplayString (GFX.InfoString, (uint8 *)screen->pixels + screen->w - 256, screen->pitch, 0);
-	else if (Settings.DisplayFrameRate)
-		S9xDisplayFrameRate ((uint8 *)screen->pixels + screen->w - 256, screen->pitch);
+		S9xDisplayString (GFX.InfoString, (uint8 *)screen->pixels + screen->w - 24, screen->pitch, 0);
+	/*else*/ if (Settings.DisplayFrameRate)
+    {
+            sprintf (msg, "             %02d/%02d", \
+                     (int)IPPU.DisplayedRenderedFrameCount, \
+                     (int) Memory.ROMFramesPerSecond);
+            S9xSetInfoString(msg);
+    }
 
 	SDL_UnlockSurface(screen);
 	SDL_Flip(screen);
@@ -1089,46 +1063,24 @@ void S9xProcessEvents (bool8_32 block)
 	{
 		switch(event.type)
 		{
-#ifdef CAANOO
-			// CAANOO -------------------------------------------------------------
-			case SDL_JOYBUTTONDOWN:
-				keyssnes = SDL_JoystickOpen(0);
-				//QUIT Emulator
-				if ( SDL_JoystickGetButton(keyssnes, sfc_key[QUIT]) && SDL_JoystickGetButton(keyssnes, sfc_key[B_1] ) )
-				{
-					S9xExit();
-				}
-				// MAINMENU
-				else if ( SDL_JoystickGetButton(keyssnes, sfc_key[QUIT]) )
-				{
-					S9xSetSoundMute (TRUE);
-					menu_loop();
-					S9xSetSoundMute(FALSE);
-				}
-				break;
-
-			case SDL_JOYBUTTONUP:
-				keyssnes = SDL_JoystickOpen(0);
-				switch(event.jbutton.button)
-				{
-				}
-				break;
-#else
-			//DINGOO ------------------------------------------------------
 			case SDL_KEYDOWN:
 				keyssnes = SDL_GetKeyState(NULL);
 
 				//QUIT Emulator
-				if ( (keyssnes[sfc_key[SELECT_1]] == SDL_PRESSED) &&(keyssnes[sfc_key[START_1]] == SDL_PRESSED) && (keyssnes[sfc_key[X_1]] == SDL_PRESSED) )
+                //if ( (keyssnes[sfc_key[SELECT_1]] == SDL_PRESSED) &&(keyssnes[sfc_key[START_1]] == SDL_PRESSED) && (keyssnes[sfc_key[X_1]] == SDL_PRESSED) )
+                if (0)
 				{
 					S9xExit();
 				}
 				//RESET ROM Playback
+                /*
 				else if ((keyssnes[sfc_key[SELECT_1]] == SDL_PRESSED) && (keyssnes[sfc_key[START_1]] == SDL_PRESSED) && (keyssnes[sfc_key[B_1]] == SDL_PRESSED))
 				{
 					S9xReset();
 				}
+                */
 				//SAVE State
+                /*
 				else if ( (keyssnes[sfc_key[START_1]] == SDL_PRESSED) && (keyssnes[sfc_key[R_1]] == SDL_PRESSED) )
 				{
 					//extern char snapscreen;
@@ -1143,7 +1095,9 @@ void S9xProcessEvents (bool8_32 block)
 					save_screenshot(fname);
 					S9xSetSoundMute(false);
 				}
+                */
 				//LOAD State
+                /*
 				else if ( (keyssnes[sfc_key[START_1]] == SDL_PRESSED) && (keyssnes[sfc_key[L_1]] == SDL_PRESSED) )
 				{
 					char fname[256], ext[8];
@@ -1153,8 +1107,9 @@ void S9xProcessEvents (bool8_32 block)
 					S9xLoadSnapshot (fname);
 					S9xSetSoundMute(false);
 				}
+                */
 				// MAINMENU
-				else if ((keyssnes[sfc_key[SELECT_1]] == SDL_PRESSED)&&(keyssnes[sfc_key[START_1]] == SDL_PRESSED) )
+				else if ((keyssnes[DINGOO_BUTTON_SELECT] == SDL_PRESSED)&&(keyssnes[DINGOO_BUTTON_START] == SDL_PRESSED) )
 				{
 					S9xSetSoundMute(true);
 					menu_loop();
@@ -1164,22 +1119,10 @@ void S9xProcessEvents (bool8_32 block)
 			case SDL_KEYUP:
 				keyssnes = SDL_GetKeyState(NULL);
 				break;
-#endif //CAANOO
 		}
 	}
 }
 
-//#endif
-
-static long log2 (long num)
-{
-	long n = 0;
-
-	while (num >>= 1)
-	n++;
-
-	return (n);
-}
 
 uint32 S9xReadJoypad (int which1)
 {
@@ -1188,21 +1131,6 @@ uint32 S9xReadJoypad (int which1)
 	if (which1 > 4)
 		return 0;
 
-#ifdef CAANOO
-	//player1
-	if (SDL_JoystickGetButton(keyssnes, sfc_key[L_1]))			val |= SNES_TL_MASK;
-	if (SDL_JoystickGetButton(keyssnes, sfc_key[R_1]))			val |= SNES_TR_MASK;
-	if (SDL_JoystickGetButton(keyssnes, sfc_key[X_1]))			val |= SNES_X_MASK;
-	if (SDL_JoystickGetButton(keyssnes, sfc_key[Y_1]))			val |= SNES_Y_MASK;
-	if (SDL_JoystickGetButton(keyssnes, sfc_key[B_1]))			val |= SNES_B_MASK;
-	if (SDL_JoystickGetButton(keyssnes, sfc_key[A_1]))			val |= SNES_A_MASK;
-	if (SDL_JoystickGetButton(keyssnes, sfc_key[START_1]))		val |= SNES_START_MASK;
-	if (SDL_JoystickGetButton(keyssnes, sfc_key[SELECT_1]))		val |= SNES_SELECT_MASK;
-	if (SDL_JoystickGetAxis(keyssnes, 1) < -20000)				val |= SNES_UP_MASK;
-	if (SDL_JoystickGetAxis(keyssnes, 1) > 20000)				val |= SNES_DOWN_MASK;
-	if (SDL_JoystickGetAxis(keyssnes, 0) < -20000)				val |= SNES_LEFT_MASK;
-	if (SDL_JoystickGetAxis(keyssnes, 0) > 20000)				val |= SNES_RIGHT_MASK;
-#else
 	//player1
 	if (keyssnes[sfc_key[L_1]] == SDL_PRESSED)		val |= SNES_TL_MASK;
 	if (keyssnes[sfc_key[R_1]] == SDL_PRESSED)		val |= SNES_TR_MASK;
@@ -1227,7 +1155,6 @@ uint32 S9xReadJoypad (int which1)
 	if (keyssnes[sfc_key[RU_2]] == SDL_PRESSED)	val |= SNES_RIGHT_MASK | SNES_UP_MASK;
 	if (keyssnes[sfc_key[RD_2]] == SDL_PRESSED)	val |= SNES_RIGHT_MASK | SNES_DOWN_MASK;
 	*/
-#endif
 
 #ifdef NETPLAY_SUPPORT
 	if (Settings.NetPlay)

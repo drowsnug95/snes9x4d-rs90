@@ -174,6 +174,7 @@ GFX.X2 [((((C1) & RGB_REMOVE_LOW_BITS_MASK) + \
 	  ((C2) & RGB_REMOVE_LOW_BITS_MASK)) >> 1) + \
 	((C1) & (C2) & RGB_LOW_BITS_MASK)]
 #else
+
 #define COLOR_ADD(C1, C2) \
 (GFX.X2 [((((C1) & RGB_REMOVE_LOW_BITS_MASK) + \
 	  ((C2) & RGB_REMOVE_LOW_BITS_MASK)) >> 1) + \

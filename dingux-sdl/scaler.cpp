@@ -1,11 +1,78 @@
-
 #include "scaler.h"
 
 #define AVERAGE(z, x) ((((z) & 0xF7DEF7DE) >> 1) + (((x) & 0xF7DEF7DE) >> 1))
 #define AVERAGEHI(AB) ((((AB) & 0xF7DE0000) >> 1) + (((AB) & 0xF7DE) << 15))
 #define AVERAGELO(CD) ((((CD) & 0xF7DE) >> 1) + (((CD) & 0xF7DE0000) >> 17))
 
-void (*upscale_p)(uint32_t *dst, uint32_t *src, int width) = upscale_256x224_to_320x240;
+/*convert 208px to 160px by drowsnug */
+void downscale_208to160(uint32_t* __restrict__ dst, uint32_t* __restrict__ src,int width)
+{
+    uint16_t y=8;
+    uint32_t* __restrict__ buffer_mem;
+    
+    const uint16_t ix=1, iy=4;
+
+    for(int H=0;H<53;H+=1)
+    {
+	    buffer_mem = &src[y<<7];
+        uint16_t x = 4;
+        for(int W=0;W<120;W++) 
+        {
+            uint32_t a,b,c,d;
+            a=buffer_mem[x];
+            b=buffer_mem[x+128];
+            c=buffer_mem[x+128*2];
+            d=buffer_mem[x+128*3];
+            
+            *dst = ((a & 0xE79CE79C)>>2) + ((a & 0xF7DEF7DE)>>1) +  ((b & 0xE79CE79C)>>2);
+	        *(dst+120) = ((b & 0xF7DEF7DE)>>1) + ((c & 0xF7DEF7DE)>>1);
+	        *(dst+120*2) = ((c & 0xC718C718)>>2) + ((d & 0xF7DEF7DE)>>1) + ((d & 0xE79CE79C)>>2);
+ 	        dst++;
+            x += ix;
+        }
+        dst += 120*2;
+        y += iy;
+    }
+}
+
+
+/*convert 224px to 160px by drowsnug */
+void downscale_224to160(uint32_t* __restrict__ dst,uint32_t* __restrict__ src, int width)
+{
+    uint16_t y=4;
+    uint32_t* __restrict__ buffer_mem;
+    
+    const uint16_t ix=1, iy=7;
+    
+    for(int H=0;H<32;H+=1)
+    {
+	    buffer_mem = &src[y<<7];
+        uint16_t x = 4;
+        for(int W=0;W<120;W++) 
+        {
+            uint32_t a,b,c,d,e,f,g;
+            a=buffer_mem[x];
+            b=buffer_mem[x+128];
+            c=buffer_mem[x+128*2];
+            d=buffer_mem[x+128*3];
+            e=buffer_mem[x+128*4];
+            f=buffer_mem[x+128*5];
+            g=buffer_mem[x+128*6];
+            
+            *dst = ((a & 0xE79CE79C)>>2) + ((a & 0xF7DEF7DE)>>1) +  ((b & 0xE79CE79C)>>2);
+	        *(dst+120) = ((b & 0xF7DEF7DE)>>1) + ((c & 0xF7DEF7DE)>>1);
+	        *(dst+120*2) = ((c & 0xC718C718)>>3) + ((d & 0xF7DEF7DE)>>1) + ((d & 0xE79CE79C)>>2) + ((e & 0xC718C718)>>3);
+	        *(dst+120*3) = ((e & 0xF7DEF7DE)>>1) + ((f & 0xF7DEF7DE)>>1);
+	        *(dst+120*4) = ((f & 0xE79CE79C)>>2) + ((g & 0xE79CE79C)>>2) + ((g & 0xF7DEF7DE)>>1);
+ 	        dst++;
+            x += ix;
+        }
+        dst += 120*4;
+        y += iy;
+    }
+}
+
+
 
 /*
     Upscale 256x224 -> 320x240

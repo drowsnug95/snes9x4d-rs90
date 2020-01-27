@@ -3201,8 +3201,7 @@ void DisplayChar (uint8 *Screen, uint8 c, uint32 pitch)
 
 		if (p == '#')
 		    *s = 0xffff;
-		else
-		if (p == '.')
+		else if (p == '.')
 		    *s = BLACK;
 	    }
 	}
@@ -3210,69 +3209,61 @@ void DisplayChar (uint8 *Screen, uint8 c, uint32 pitch)
 #ifndef _ZAURUS
     else
     {
-	int h, w;
 	uint8 *s = Screen;
-	for (h = 0; h < font_height; h++, line++,
-//	     s += GFX.PPL - font_width)
+	for (int h = 0; h < font_height; h++, line++,
 	     s += (pitch / 2) - font_width)
-	{
-	    for (w = 0; w < font_width; w++, s++)
-	    {
-		uint8 p = font [line][offset + w];
-
-		if (p == '#')
-		    *s = 255;
-		else
-		if (p == '.')
-		    *s = BLACK;
-	    }
-	}
+        {
+            for (int w = 0; w < font_width; w++, s++)
+            {
+                uint8 p = font [line][offset + w];
+                if (p == '#')
+                    *s = 255;
+                else if (p == '.')
+                    *s = BLACK;
+            }
+        }
     }
 #endif
 }
 
 void S9xDisplayFrameRate (uint8 *screen, uint32 pitch)
 {
-#ifdef PANDORA
-// the pandora directly hands over the correct position for the string since it
-// is resolution dependant!
-    uint8 *Screen = screen;
-#else
-    uint8 *Screen = screen + 2 + 400 +
-      (IPPU.RenderedScreenHeight - font_height - 1) * pitch;
-#endif
-    char string [16];
+    /*
+    uint8 *Screen = screen + 2 + (84 - font_height * 5) * pitch;
+    char msg[16];
 //    int len = 5;
 
-    sprintf (string, "%02d/%02d", IPPU.DisplayedRenderedFrameCount,
+    sprintf (string, "%03d/%03d", (int)IPPU.DisplayedRenderedFrameCount,
 	     (int) Memory.ROMFramesPerSecond);
-
-    int i;
+    S9xSetInfoString(msg);
+    
 #ifdef _ZAURUS
     Screen += (font_width - 1) * sizeof(uint16);
 #endif
-    for (i = 0; i < 5; i++)
+    for (int i = 0; i < 5; i++)
     {
-	DisplayChar (Screen, string [i], pitch);
-	Screen +=  (font_width - 1) * sizeof (uint16);
+        DisplayChar (Screen, string [i], pitch);
+        Screen +=  (font_width - 1) * sizeof (uint16);
     }
+    */
 }
 
 void S9xDisplayString (const char *string, uint8 *screen, uint32 pitch, int ypos)
 {
 	uint8 *Screen = screen + 2 + (ypos - font_height * 5) * pitch;
 
-	if(ypos == 0)
-		Screen = screen + 2 + (IPPU.RenderedScreenHeight - font_height * 1) * pitch;
+	if(ypos == 0) //for S9xDisplayString() on bottom of screen
+		//Screen = screen + 2 + (IPPU.RenderedScreenHeight - font_height * 1) * pitch;
+        Screen = screen + 2 + (160 - font_height) * pitch;
 
 	int len = strlen (string);
 	int max_chars = IPPU.RenderedScreenWidth / (font_width - 1);
 	int char_count = 0;
-	int i;
 
-	for (i = 0; i < len; i++, char_count++)
+	for (int i = 0; i < len; i++, char_count++)
 	{
-		if (char_count >= max_chars || string [i] < 32)
+		/*
+        if (char_count >= max_chars || string [i] < 32)
 		{
 		    Screen -= (font_width - 1) * sizeof (uint16) * max_chars;
 		    Screen += font_height * pitch;
@@ -3280,6 +3271,7 @@ void S9xDisplayString (const char *string, uint8 *screen, uint32 pitch, int ypos
 				break;
 		    char_count -= max_chars;
 		}
+        */
 		if (string [i] < 32)
 		    continue;
 		DisplayChar (Screen, string [i], pitch);
