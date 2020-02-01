@@ -295,7 +295,7 @@ int main (int argc, char **argv)
 	Settings.ServerName [0] = 0;
 	Settings.ThreadSound = FALSE;
 	Settings.AutoSaveDelay = 30;
-	Settings.ApplyCheats = TRUE;
+	Settings.ApplyCheats = FALSE;
 	Settings.TurboMode = FALSE;
 	Settings.TurboSkipFrames = 15;
 	if (Settings.ForceNoTransparency)
@@ -1141,9 +1141,9 @@ uint32 S9xReadJoypad (int which1)
 	if (keyssnes[sfc_key[START_1]] == SDL_PRESSED)	val |= SNES_START_MASK;
 	if (keyssnes[sfc_key[SELECT_1]] == SDL_PRESSED)	val |= SNES_SELECT_MASK;
 	if (keyssnes[sfc_key[UP_1]] == SDL_PRESSED)		val |= SNES_UP_MASK;
-	if (keyssnes[sfc_key[DOWN_1]] == SDL_PRESSED)	val |= SNES_DOWN_MASK;
+	else if (keyssnes[sfc_key[DOWN_1]] == SDL_PRESSED)	val |= SNES_DOWN_MASK;
 	if (keyssnes[sfc_key[LEFT_1]] == SDL_PRESSED)	val |= SNES_LEFT_MASK;
-	if (keyssnes[sfc_key[RIGHT_1]] == SDL_PRESSED)	val |= SNES_RIGHT_MASK;
+	else if (keyssnes[sfc_key[RIGHT_1]] == SDL_PRESSED)	val |= SNES_RIGHT_MASK;
 	//player2
 	/*
 	if (keyssnes[sfc_key[UP_2]] == SDL_PRESSED)		val |= SNES_UP_MASK;
