@@ -307,7 +307,8 @@ int main (int argc, char **argv)
 	rom_filename = S9xParseArgs (argv, argc);
 	printf("Rom filename: %s\n", rom_filename);
 
-	//S9xReadConfig();
+    //for rs-90 : S9xReadConfig is delayed to overwrite button remap settings
+	//S9xReadConfig();   
 
 	Settings.HBlankStart = (256 * Settings.H_Max) / SNES_HCOUNTER_MAX;
 
@@ -396,6 +397,7 @@ int main (int argc, char **argv)
 	}
 
 	S9xInitInputDevices ();
+    
     S9xReadConfig();
 
 	CPU.Flags = saved_flags;
@@ -843,13 +845,13 @@ bool8_32 S9xDeinitUpdate (int Width, int Height)
 
 	if (GFX.InfoString)
 		S9xDisplayString (GFX.InfoString, (uint8 *)screen->pixels + screen->w - 24, screen->pitch, 0);
-	/*else*/ if (Settings.DisplayFrameRate)
-    {
+
+    if (Settings.DisplayFrameRate){
             sprintf (msg, "             %02d/%02d", \
                      (int)IPPU.DisplayedRenderedFrameCount, \
                      (int) Memory.ROMFramesPerSecond);
             S9xSetInfoString(msg);
-    }
+        }
 
 	SDL_UnlockSurface(screen);
 	SDL_Flip(screen);
@@ -991,7 +993,7 @@ void S9xSyncSpeed () // called from S9xMainLoop in ../cpuexec.cpp
 
 		return;
 	}
-#endif
+#endif //NETPLY_SUPPORT
 	if (!Settings.TurboMode && Settings.SkipFrames == AUTO_FRAMERATE)
 	{
 		static struct timeval next1 = {0, 0};
@@ -1066,6 +1068,7 @@ void S9xProcessEvents (bool8_32 block)
 			case SDL_KEYDOWN:
 				keyssnes = SDL_GetKeyState(NULL);
 
+                //for rs-90 -> disable hotkeys besides mainmenu.
 				//QUIT Emulator
                 //if ( (keyssnes[sfc_key[SELECT_1]] == SDL_PRESSED) &&(keyssnes[sfc_key[START_1]] == SDL_PRESSED) && (keyssnes[sfc_key[X_1]] == SDL_PRESSED) )
                 if (0)
@@ -1127,10 +1130,10 @@ void S9xProcessEvents (bool8_32 block)
 uint32 S9xReadJoypad (int which1)
 {
 	uint32 val=0x80000000;
-
+#ifndef _ZAURUS
 	if (which1 > 4)
 		return 0;
-
+#endif
 	//player1
 	if (keyssnes[sfc_key[L_1]] == SDL_PRESSED)		val |= SNES_TL_MASK;
 	if (keyssnes[sfc_key[R_1]] == SDL_PRESSED)		val |= SNES_TR_MASK;

@@ -2,7 +2,9 @@
 # blame Skeezix
 
 UNZIP=1
-CHEATS=
+#CHEATS=1
+#USE_GCOV=YES
+USE_GCOV=APPLY
 
 DINGOOSDL=./dingux-sdl/
 
@@ -87,7 +89,6 @@ CCFLAGS  += -I.
 
 LDLIBS  = -lSDL -lz -lm
 
-USE_GCOV=NO
 ifeq ($(USE_GCOV), YES)
 CCFLAGS += -fprofile-generate=/media/data/local/home/profile
 PROFILE += -lgcov -fprofile-generate=/media/data/local/home/profilee

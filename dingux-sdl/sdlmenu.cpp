@@ -343,8 +343,6 @@ void menu_dispupdate(void)
 	//show screen shot for snapshot
 	if(SaveSlotNum_old != SaveSlotNum)
 	{
-		//strcpy(temp,"LOADING...");
-		//S9xDisplayString (temp, GFX.Screen + 280, GFX.Pitch, 210);
 		menu_flip();
 		char fname[256], ext[8];
 		sprintf(ext, ".s0%d", SaveSlotNum);
@@ -368,15 +366,6 @@ void menu_dispupdate(void)
 #define R_1 5
 #define START_1 12
 #define SELECT_1 13
-#define DINGOO_BUTTON_R             8
-#define DINGOO_BUTTON_L             9
-#define DINGOO_BUTTON_A             306
-#define DINGOO_BUTTON_B             308
-#define DINGOO_BUTTON_X             32
-#define DINGOO_BUTTON_Y             304
-#define DINGOO_BUTTON_SELECT        27
-#define DINGOO_BUTTON_START         13
-#define DINGOO_BUTTON_END           0
 */
 int CurrentButton(int button){
     int ret=14;
@@ -397,7 +386,7 @@ int CurrentButton(int button){
 }
 
 int NextButton(int button){
-    int ret=button;
+    int ret;
     if(button==DINGOO_BUTTON_A)
         ret = DINGOO_BUTTON_B;
     else if(button==DINGOO_BUTTON_B)
@@ -416,7 +405,7 @@ int NextButton(int button){
 }
 
 int PrevButton(int button){
-    int ret=button;
+    int ret;
     if(button==DINGOO_BUTTON_A)
         ret = 14;
     else if(button==DINGOO_BUTTON_B)

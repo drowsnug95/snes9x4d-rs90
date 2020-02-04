@@ -172,6 +172,10 @@ bool8_32 CMemory::Init ()
     SRAM    = (uint8 *) malloc (0x20000);
     VRAM    = (uint8 *) malloc (0x10000);
     ROM     = (uint8 *) malloc (MAX_ROM_SIZE + 0x200 + 0x8000);
+    //added for rs-90, because initialize fails in CMemory::LoadROM 
+    ZeroMemory (ROM , MAX_ROM_SIZE + 0x200 + 0x8000);
+    //
+    
     FillRAM = NULL;
 
     IPPU.TileCache [TILE_2BIT] = (uint8 *) malloc (MAX_2BIT_TILES * 128);
@@ -434,8 +438,9 @@ again:
     }
 
     CalculatedSize = (TotalFileSize / 0x2000) * 0x2000;
+    /* for RS-90
     ZeroMemory (ROM + CalculatedSize, MAX_ROM_SIZE - CalculatedSize);
-
+    */
     // Check for cherryroms.com DAIKAIJYUMONOGATARI2
 
     if (CalculatedSize == 0x500000 && 
