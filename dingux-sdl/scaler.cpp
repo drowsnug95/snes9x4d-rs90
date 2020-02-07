@@ -4,6 +4,8 @@
 #define AVERAGEHI(AB) ((((AB) & 0xF7DE0000) >> 1) + (((AB) & 0xF7DE) << 15))
 #define AVERAGELO(CD) ((((CD) & 0xF7DE) >> 1) + (((CD) & 0xF7DE0000) >> 17))
 
+#define RSHIFT(X) (((X) & 0xF7DEF7DE) >>1)
+
 /*convert 208px to 160px by drowsnug */
 void downscale_208to160(uint32_t* __restrict__ dst, uint32_t* __restrict__ src,int width)
 {
@@ -19,14 +21,14 @@ void downscale_208to160(uint32_t* __restrict__ dst, uint32_t* __restrict__ src,i
         for(int W=0;W<120;W++) 
         {
             uint32_t a,b,c,d;
-            a=buffer_mem[x];
-            b=buffer_mem[x+128];
-            c=buffer_mem[x+128*2];
-            d=buffer_mem[x+128*3];
+            a = RSHIFT(buffer_mem[x]);
+            b = RSHIFT(buffer_mem[x + 128]);
+            c = RSHIFT(buffer_mem[x + 128 * 2]);
+            d = RSHIFT(buffer_mem[x + 128 * 3]);
             
-            *dst = ((a & 0xE79CE79C)>>2) + ((a & 0xF7DEF7DE)>>1) +  ((b & 0xE79CE79C)>>2);
-	        *(dst+120) = ((b & 0xF7DEF7DE)>>1) + ((c & 0xF7DEF7DE)>>1);
-	        *(dst+120*2) = ((c & 0xC718C718)>>2) + ((d & 0xF7DEF7DE)>>1) + ((d & 0xE79CE79C)>>2);
+            *dst = a +  RSHIFT(a + b);
+	        *(dst+120) = b + c;
+	        *(dst+120*2) = d + RSHIFT(c + d);
  	        dst++;
             x += ix;
         }
@@ -51,20 +53,20 @@ void downscale_224to160(uint32_t* __restrict__ dst,uint32_t* __restrict__ src, i
         for(int W=0;W<120;W++) 
         {
             uint32_t a,b,c,d,e,f,g;
-            a=buffer_mem[x];
-            b=buffer_mem[x+128];
-            c=buffer_mem[x+128*2];
-            d=buffer_mem[x+128*3];
-            e=buffer_mem[x+128*4];
-            f=buffer_mem[x+128*5];
-            g=buffer_mem[x+128*6];
-            
-            *dst = ((a & 0xE79CE79C)>>2) + ((a & 0xF7DEF7DE)>>1) +  ((b & 0xE79CE79C)>>2);
-	        *(dst+120) = ((b & 0xF7DEF7DE)>>1) + ((c & 0xF7DEF7DE)>>1);
-	        *(dst+120*2) = ((c & 0xC718C718)>>3) + ((d & 0xF7DEF7DE)>>1) + ((d & 0xE79CE79C)>>2) + ((e & 0xC718C718)>>3);
-	        *(dst+120*3) = ((e & 0xF7DEF7DE)>>1) + ((f & 0xF7DEF7DE)>>1);
-	        *(dst+120*4) = ((f & 0xE79CE79C)>>2) + ((g & 0xE79CE79C)>>2) + ((g & 0xF7DEF7DE)>>1);
- 	        dst++;
+            a = RSHIFT(buffer_mem[x]);
+            b = RSHIFT(buffer_mem[x+128]);
+            c = RSHIFT(buffer_mem[x+128*2]);
+            d = RSHIFT(buffer_mem[x+128*3]);
+            e = RSHIFT(buffer_mem[x+128*4]);
+            f = RSHIFT(buffer_mem[x+128*5]);
+            g = RSHIFT(buffer_mem[x+128*6]);          
+
+            *dst =  a +  RSHIFT(a + b);
+	        *(dst+120) = b + c;
+	        *(dst+120*2) = d + RSHIFT(d + RSHIFT(c + e));
+	        *(dst+120*3) = e + f;
+	        *(dst+120*4) = g + RSHIFT(f + g);
+            dst++;
             x += ix;
         }
         dst += 120*4;

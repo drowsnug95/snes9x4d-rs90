@@ -91,7 +91,7 @@ LDLIBS  = -lSDL -lz -lm
 
 ifeq ($(USE_GCOV), YES)
 CCFLAGS += -fprofile-generate=/media/data/local/home/profile
-PROFILE += -lgcov -fprofile-generate=/media/data/local/home/profilee
+PROFILE += -lgcov -fprofile-generate=/media/data/local/home/profile
 else ifeq ($(USE_GCOV), APPLY)
 CCFLAGS		+= -fprofile-use -fbranch-probabilities
 endif
