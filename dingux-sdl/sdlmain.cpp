@@ -592,7 +592,7 @@ void S9xExit()
 	S9xDeinitAPU ();
 	S9xDeinitDisplay ();
 
-	SDL_ShowCursor(SDL_ENABLE);
+	//SDL_ShowCursor(SDL_ENABLE);
 	SDL_Quit();
 
 	exit (0);

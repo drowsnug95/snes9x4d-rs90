@@ -363,7 +363,8 @@ bool8_32 S9xGraphicsInit ()
 	    return (FALSE);
 	}
 	uint32 r, g, b;
-
+        
+#ifndef _RS90
 	// Build a lookup table that multiplies a packed RGB value by 2 with
 	// saturation.
 	for (r = 0; r <= MAX_RED; r++)
@@ -386,6 +387,10 @@ bool8_32 S9xGraphicsInit ()
 		}
 	    }
 	}
+#else
+        free ((char *) GFX.X2);
+#endif //ndef _RS90
+        
 	ZeroMemory (GFX.ZERO, 0x10000 * sizeof (uint16));
 	ZeroMemory (GFX.ZERO_OR_X2, 0x10000 * sizeof (uint16));
 	// Build a lookup table that if the top bit of the color value is zero
@@ -458,6 +463,10 @@ bool8_32 S9xGraphicsInit ()
                 }
             }
         }
+#endif
+        
+#ifdef _RS90
+        free ((char *) GFX.ZERO_OR_X2);
 #endif
 
 	// Build a lookup table that if the top bit of the color value is zero
