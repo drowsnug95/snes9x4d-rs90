@@ -7,18 +7,18 @@
 #define RSHIFT(X) (((X) & 0xF7DEF7DE) >>1)
 
 /*convert 208px to 160px by drowsnug */
-void downscale_208to160(uint32_t* __restrict__ dst, uint32_t* __restrict__ src,int width)
+void downscale_208to160(uint32_t* __restrict__ dst, uint32_t* __restrict__ src)
 {
-    uint16_t y=8;
+    uint16_t y = 8;
     uint32_t* __restrict__ buffer_mem;
     
-    const uint16_t ix=1, iy=4;
+    const uint16_t ix = 1, iy = 4;
 
-    for(int H=0;H<53;H+=1)
+    for(int H = 0; H < 53; H += 1)
     {
 	    buffer_mem = &src[y<<7];
         uint16_t x = 4;
-        for(int W=0;W<120;W++) 
+        for(int W = 0; W < 120; W ++) 
         {
             uint32_t a,b,c,d;
             a = RSHIFT(buffer_mem[x]);
@@ -27,30 +27,30 @@ void downscale_208to160(uint32_t* __restrict__ dst, uint32_t* __restrict__ src,i
             d = RSHIFT(buffer_mem[x + 128 * 3]);
             
             *dst = a +  RSHIFT(a + b);
-	        *(dst+120) = b + c;
-	        *(dst+120*2) = d + RSHIFT(c + d);
+	        *(dst + 120) = b + c;
+	        *(dst + 120 * 2) = d + RSHIFT(c + d);
  	        dst++;
             x += ix;
         }
-        dst += 120*2;
+        dst += 120 * 2;
         y += iy;
     }
 }
 
 
 /*convert 224px to 160px by drowsnug */
-void downscale_224to160(uint32_t* __restrict__ dst,uint32_t* __restrict__ src, int width)
+void downscale_224to160(uint32_t* __restrict__ dst,uint32_t* __restrict__ src)
 {
-    uint16_t y=4;
+    uint16_t y = 4;
     uint32_t* __restrict__ buffer_mem;
     
-    const uint16_t ix=1, iy=7;
+    const uint16_t ix = 1, iy = 7;
     
-    for(int H=0;H<32;H+=1)
+    for(int H = 0; H < 32; H += 1)
     {
 	    buffer_mem = &src[y<<7];
         uint16_t x = 4;
-        for(int W=0;W<120;W++) 
+        for(int W = 0; W < 120; W++) 
         {
             uint32_t a,b,c,d,e,f,g;
             a = RSHIFT(buffer_mem[x]);
@@ -62,14 +62,14 @@ void downscale_224to160(uint32_t* __restrict__ dst,uint32_t* __restrict__ src, i
             g = RSHIFT(buffer_mem[x+128*6]);          
 
             *dst =  a +  RSHIFT(a + b);
-	        *(dst+120) = b + c;
-	        *(dst+120*2) = d + RSHIFT(d + RSHIFT(c + e));
-	        *(dst+120*3) = e + f;
-	        *(dst+120*4) = g + RSHIFT(f + g);
+	        *(dst + 120) = b + c;
+	        *(dst + 120 * 2) = d + RSHIFT(d + RSHIFT(c + e));
+	        *(dst + 120 * 3) = e + f;
+	        *(dst + 120 * 4) = g + RSHIFT(f + g);
             dst++;
             x += ix;
         }
-        dst += 120*4;
+        dst += 120 * 4;
         y += iy;
     }
 }

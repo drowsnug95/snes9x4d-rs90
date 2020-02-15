@@ -812,7 +812,8 @@ bool8_32 S9xDeinitUpdate (int Width, int Height)
 
 	if (Settings.SupportHiRes)
 	{
-		if (Width > 256) //This may not implemet for RS-90
+#ifndef _RS90
+		if (Width > 256)
 		{
 			// If SupportHiRes is active and HighRes Frame
 			uint16 *dp16 = (uint16 *)(screen->pixels) + dpo*2;
@@ -825,11 +826,13 @@ bool8_32 S9xDeinitUpdate (int Width, int Height)
 			}
 		}
 		else
+#endif
 		{
+            //for RS-90
 			if(Scale) {
-				downscale_224to160((uint32_t *)screen->pixels, (uint32_t *)GFX.Screen, 512);  
+				downscale_224to160((uint32_t *)screen->pixels, (uint32_t *)GFX.Screen);  
 			} else {
-				downscale_208to160((uint32_t *)screen->pixels, (uint32_t *)GFX.Screen, 512);
+				downscale_208to160((uint32_t *)screen->pixels, (uint32_t *)GFX.Screen);
             }
 		}
 	}
@@ -837,9 +840,9 @@ bool8_32 S9xDeinitUpdate (int Width, int Height)
 	{
 		// if scaling for non-highres (is centered)
 		if(Scale) {
-			downscale_224to160((uint32_t *)screen->pixels, (uint32_t *)GFX.Screen, 256); 
+			downscale_224to160((uint32_t *)screen->pixels, (uint32_t *)GFX.Screen); 
 		} else {
-			downscale_208to160((uint32_t *)screen->pixels, (uint32_t *)GFX.Screen, 256); 
+			downscale_208to160((uint32_t *)screen->pixels, (uint32_t *)GFX.Screen); 
 		}
 	}
 
@@ -1112,7 +1115,7 @@ void S9xProcessEvents (bool8_32 block)
 				}
                 */
 				// MAINMENU
-				else if ((keyssnes[DINGOO_BUTTON_SELECT] == SDL_PRESSED)&&(keyssnes[DINGOO_BUTTON_START] == SDL_PRESSED) )
+				else if ((keyssnes[DINGOO_BUTTON_SELECT] == SDL_PRESSED) && (keyssnes[DINGOO_BUTTON_START] == SDL_PRESSED) )
 				{
 					S9xSetSoundMute(true);
 					menu_loop();

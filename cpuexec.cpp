@@ -54,6 +54,8 @@
 #include "fxemu.h"
 #include "sa1.h"
 
+extern bool8_32 Scale;
+
 void S9xMainLoop (void)
 {
 	struct SCPUState *cpu = &CPU;
@@ -297,8 +299,13 @@ void S9xDoHBlankProcessing (struct SCPUState *cpu, struct SAPU *apu, struct SIAP
 	    cpu->Flags &= ~NMI_FLAG;
 	    S9xStartScreenRefresh ();
 	}
+#ifdef _RS90
+	if (cpu->V_Counter - FIRST_VISIBLE_LINE >= 8* (1-Scale) &&
+        cpu->V_Counter - FIRST_VISIBLE_LINE <= 224 - 6 * (1-Scale))
+#else
 	if (cpu->V_Counter >= FIRST_VISIBLE_LINE &&
 	    cpu->V_Counter < ppu->ScreenHeight + FIRST_VISIBLE_LINE)
+#endif
 	{
 	    RenderLine (cpu->V_Counter - FIRST_VISIBLE_LINE, ppu);
 	}

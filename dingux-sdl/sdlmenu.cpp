@@ -291,12 +291,8 @@ void menu_dispupdate(void)
 		}	
 	}
     if(remapbuttons==0){
-        #ifdef _RS90
-        sprintf(disptxt[0],"Snes9x4D RS-90 %s",__DATE__);
-        #else
         sprintf(disptxt[0],"Snes9x4D for RS-90");
-        #endif
-        strcpy(disptxt[1],"----------------------------");
+        sprintf(disptxt[1],"--------------- %s -",__DATE__);
         strcpy(disptxt[2],"Reset Game           ");
         strcpy(disptxt[3],"Save State           ");
         strcpy(disptxt[4],"Load State           ");

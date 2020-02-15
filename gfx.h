@@ -168,12 +168,6 @@ extern uint8 mul_brightness [16][32];
 #define SUB_SCREEN_DEPTH 0
 #define MAIN_SCREEN_DEPTH 32
 
-#if defined(OLD_COLOUR_BLENDING)
-#define COLOR_ADD(C1, C2) \
-GFX.X2 [((((C1) & RGB_REMOVE_LOW_BITS_MASK) + \
-	  ((C2) & RGB_REMOVE_LOW_BITS_MASK)) >> 1) + \
-	((C1) & (C2) & RGB_LOW_BITS_MASK)]
-#endif
 //for rs-90 light COLOR_ADD
 //    #define MASK1 0b1111011111011110
 //    #define MASK2 0b0111101111101111
@@ -185,7 +179,7 @@ GFX.X2 [((((C1) & RGB_REMOVE_LOW_BITS_MASK) + \
 //    c = b- (b >> 4);
 //    z = ((a | c) & MASK2)<<1;
 //
-#if defined(_RS90)
+#ifdef _RS90
 #define COLOR_ADD(C1, C2) \
 ((((((C1 & 0xF7DE)>>1) + ((C2 & 0xF7DE)>>1)) | (((((C1 & 0xF7DE)>>1) + ((C2 & 0xF7DE)>>1)) & 0x8410)- (((((C1 & 0xF7DE)>>1) + ((C2 & 0xF7DE)>>1)) & 0x8410) >> 4))) & 0x7BEF)<<1)
 #else
@@ -201,11 +195,6 @@ GFX.X2 [((((C1) & RGB_REMOVE_LOW_BITS_MASK) + \
           ((C2) & RGB_REMOVE_LOW_BITS_MASK)) >> 1) + \
          ((C1) & (C2) & RGB_LOW_BITS_MASK) | ALPHA_BITS_MASK)
 
-#if defined(OLD_COLOUR_BLENDING)
-#define COLOR_SUB(C1, C2) \
-GFX.ZERO_OR_X2 [(((C1) | RGB_HI_BITS_MASKx2) - \
-		 ((C2) & RGB_REMOVE_LOW_BITS_MASK)) >> 1]
-#endif
 //for rs-90 light COLOR_SUB (really fast?)
 //    #define MASK1 0xF7DE
 //    #define MASK2 0x7BEF
@@ -219,7 +208,7 @@ GFX.ZERO_OR_X2 [(((C1) | RGB_HI_BITS_MASKx2) - \
 //    c = c ^ 0x7bcf;
 //    z = ((a & c) & MASK2)<<1;
 //
-#if defined(_RS90)
+#ifdef _RS90
 #define COLOR_SUB(C1, C2) \
 ((((((C1 & 0xF7DE)>>1) + ((((C2 & 0xF7DE)>>1) ^ 0xffff) + 0x0821)) & ((((((C1 & 0xF7DE)>>1) + ((((C2 & 0xF7DE)>>1) ^ 0xffff) + 0x0821)) & 0x8410) - (((((C1 & 0xF7DE)>>1) + ((((C2 & 0xF7DE)>>1) ^ 0xffff) + 0x0821)) & 0x8410)>>4)) ^ 0x7bcf)) & 0x7BEF)<<1)
 #else

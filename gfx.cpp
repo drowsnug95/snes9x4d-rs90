@@ -396,38 +396,7 @@ bool8_32 S9xGraphicsInit ()
 	// Build a lookup table that if the top bit of the color value is zero
 	// then the value is zero, otherwise multiply the value by 2. Used by
 	// the color subtraction code.
-
-#if defined(OLD_COLOUR_BLENDING)
-	for (r = 0; r <= MAX_RED; r++)
-	{
-	    uint32 r2 = r;
-	    if ((r2 & 0x10) == 0)
-		r2 = 0;
-	    else
-		r2 = (r2 << 1) & MAX_RED;
-
-	    for (g = 0; g <= MAX_GREEN; g++)
-	    {
-		uint32 g2 = g;
-		if ((g2 & GREEN_HI_BIT) == 0)
-		    g2 = 0;
-		else
-		    g2 = (g2 << 1) & MAX_GREEN;
-
-		for (b = 0; b <= MAX_BLUE; b++)
-		{
-		    uint32 b2 = b;
-		    if ((b2 & 0x10) == 0)
-			b2 = 0;
-		    else
-			b2 = (b2 << 1) & MAX_BLUE;
-
-		    GFX.ZERO_OR_X2 [BUILD_PIXEL2 (r, g, b)] = BUILD_PIXEL2 (r2, g2, b2);
-		    GFX.ZERO_OR_X2 [BUILD_PIXEL2 (r, g, b) & ~ALPHA_BITS_MASK] = BUILD_PIXEL2 (r2, g2, b2);
-		}
-	    }
-	}
-#else
+#ifndef _RS90
         for (r = 0; r <= MAX_RED; r++)
         {
             uint32 r2 = r;
@@ -462,10 +431,8 @@ bool8_32 S9xGraphicsInit ()
                     GFX.ZERO_OR_X2 [BUILD_PIXEL2 (r, g, b) & ~ALPHA_BITS_MASK] = BUILD_PIXEL2 (r2, g2, b2);
                 }
             }
-        }
-#endif
-        
-#ifdef _RS90
+        }   
+#else
         free ((char *) GFX.ZERO_OR_X2);
 #endif
 
@@ -3847,7 +3814,7 @@ void S9xUpdateScreen () // ~30-50ms! (called from FLUSH_REDRAW())
                 if (y < 8* (1-Scale) || y > 224 - 6 * (1-Scale))
                     continue;
 #endif  
-				register uint32 *p = (uint32 *) (gfx->Screen + y * gfx->Pitch2);
+                register uint32 *p = (uint32 *) (gfx->Screen + y * gfx->Pitch2);
 				uint32 *q = (uint32 *) ((uint16 *) p + ippu->RenderedScreenWidth);
 
 				while (p < q) {
@@ -3876,7 +3843,7 @@ void S9xUpdateScreen () // ~30-50ms! (called from FLUSH_REDRAW())
 			for (uint32 y = starty; y <= endy; y++) {
 #ifdef _RS90
                 if (y < 8* (1-Scale) || y > 224 - 6 * (1-Scale))
-                    continue;
+                continue;
 #endif  
 				register uint32 *p = (uint32 *) (gfx->Screen + y * gfx->Pitch2);
 				uint32 *q = (uint32 *) ((uint16 *) p + ippu->RenderedScreenWidth);
@@ -3890,6 +3857,10 @@ void S9xUpdateScreen () // ~30-50ms! (called from FLUSH_REDRAW())
 	    }
 	    if (!PPU.ForcedBlanking) {
 			for (uint32 y = starty; y <= endy; y++) {
+#ifdef _RS90
+                if (y < 8* (1-Scale) || y > 224 - 6 * (1-Scale))
+                    continue;
+#endif  
 				ZeroMemory (gfx->ZBuffer + y * gfx->ZPitch,
 					ippu->RenderedScreenWidth);
 			}
@@ -3916,7 +3887,7 @@ void S9xUpdateScreen () // ~30-50ms! (called from FLUSH_REDRAW())
             if (y < 8* (1-Scale) || y > 224 - 6 * (1-Scale))
                 continue;
 #endif  
-			register uint32 *p = (uint32 *) (gfx->Screen + y * gfx->Pitch2);
+            register uint32 *p = (uint32 *) (gfx->Screen + y * gfx->Pitch2);
 			uint32 *q = (uint32 *) ((uint16 *) p + ippu->RenderedScreenWidth);
 			while (p < q) {
 				*p++ = back;
@@ -3938,7 +3909,11 @@ void S9xUpdateScreen () // ~30-50ms! (called from FLUSH_REDRAW())
 	{
 	    for (uint32 y = starty; y <= endy; y++)
 	    {
-		ZeroMemory (gfx->ZBuffer + y * gfx->ZPitch,
+#ifdef _RS90
+            if (y < 8* (1-Scale) || y > 224 - 6 * (1-Scale))
+                continue;
+#endif
+            ZeroMemory (gfx->ZBuffer + y * gfx->ZPitch,
 			    ippu->RenderedScreenWidth);
 	    }
 	    gfx->DB = gfx->ZBuffer;
@@ -4084,11 +4059,6 @@ else \
 	    {
 		for (register uint32 y = gfx->StartY; y <= gfx->EndY; y++)
 		{
-#ifdef _RS90
-            if (y < 8* (1-Scale) || y > 224 - 6 * (1-Scale))
-            continue;
-#endif  
-
 		    register uint8 *p = gfx->Screen + y * gfx->Pitch + 255;
 		    register uint8 *q = gfx->Screen + y * gfx->Pitch + 510;
 		    for (register int x = 255; x >= 0; x--, p--, q -= 2)
@@ -4104,10 +4074,6 @@ else \
 	    // pixels.
 	    for (uint32 y = gfx->StartY; y <= gfx->EndY; y++)
 	    {
-#ifdef _RS90
-            if (y < 8* (1-Scale) || y > 224 - 6 * (1-Scale))
-                continue;
-#endif  
 		memmove (gfx->Screen + (y * 2 + 1) * gfx->Pitch2,
 			 gfx->Screen + y * 2 * gfx->Pitch2,
 			 gfx->Pitch2);

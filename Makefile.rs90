@@ -21,7 +21,6 @@ C4OBJ = c4.o c4emu.o
 C4DEFINES =
 C4NO_DEPENDS = zsnes_c4
 
-
 ifdef CHEATS
 CHEAT = cheats.o cheats2.o
 CHEATDEFINES = -DCHEATS
@@ -64,7 +63,6 @@ OPTIMISE = -D_ZAURUS -D_RS90 -Ofast -mips32 \
 			-ffast-math -fomit-frame-pointer -fno-strength-reduce
 
 CCFLAGS = $(OPTIMISE) $(PROFILE) \
--I. \
 -I$(DINGOOSDL) \
 -I./unzip \
 -D__SDL__ \
