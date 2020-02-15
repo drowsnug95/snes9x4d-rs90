@@ -1057,8 +1057,13 @@ void DrawOBJS (bool8_32 OnMain = FALSE, uint8 D = 0)
 	    int Right;
 	    if (!gfx->pCurrentClip->Count [4])
 	    {
+#ifdef _RS90  //only draw visible area
+		Left = 8;
+		Right = 248;
+#else
 		Left = 0;
 		Right = 256;
+#endif
 	    }
 	    else
 	    {
@@ -1232,9 +1237,14 @@ void DrawBackgroundMosaic (uint32 BGMode, uint32 bg, uint8 Z1, uint8 Z2)
 	b1 += (ScreenLine & 0x1f) << 5;
 	b2 += (ScreenLine & 0x1f) << 5;
 	uint16 *t;
+#ifdef _RS90  //only draw visible area
+	uint32 Left = 8;
+	uint32 Right = 248;
+#else
 	uint32 Left = 0;
 	uint32 Right = 256;
-
+#endif
+        
 	uint32 ClipCount = gfx->pCurrentClip->Count [bg];
 	uint32 HPos = HOffset;
 	uint32 PixWidth = ppu->Mosaic;
@@ -1436,6 +1446,10 @@ void DrawBackgroundOffset (uint32 BGMode, uint32 bg, uint8 Z1, uint8 Z2)
 
     for (uint32 Y = gfx->StartY; Y <= gfx->EndY; Y++)
     {
+#ifdef _RS90
+	if (Y < 8* (1-Scale) || Y > 224 - 6 * (1-Scale))
+        continue;
+#endif  
 	uint32 VOff = LineData [Y].BG[2].VOffset;
 	uint32 HOff = LineData [Y].BG[2].HOffset;
 	int VirtAlign;
@@ -1465,9 +1479,14 @@ void DrawBackgroundOffset (uint32 BGMode, uint32 bg, uint8 Z1, uint8 Z2)
 
 	    if (!gfx->pCurrentClip->Count [bg])
 	    {
-		Left = 0;
-		Right = 256;
-	    }
+#ifdef _RS90  //only draw visible area
+            Left = 8;
+            Right = 248;
+#else
+            Left = 0;
+            Right = 256;
+#endif
+        }
 	    else
 	    {
 		Left = gfx->pCurrentClip->Left [clip][bg];
@@ -1751,9 +1770,14 @@ void DrawBackgroundMode5 (uint32 /* BGMODE */, uint32 bg, uint8 Z1, uint8 Z2)
 
 	    if (!gfx->pCurrentClip->Count [bg])
 	    {
-		Left = 0;
-		Right = 512;
-	    }
+#ifdef _RS90  //only draw visible area
+            Left = 8;
+            Right = 248;
+#else
+            Left = 0;
+            Right = 256;
+#endif
+        }
 	    else
 	    {
 		Left = gfx->pCurrentClip->Left [clip][bg] * 2;
@@ -2000,11 +2024,11 @@ void DrawBackground (uint32 BGMode, uint32 bg, uint8 Z1, uint8 Z2)
     case 5:
     case 6: // XXX: is also offset per tile.
 		if (Settings.SupportHiRes)
-	{
-	    DrawBackgroundMode5 (BGMode, bg, Z1, Z2);
-	    return;
-	}
-	break;
+        {
+            DrawBackgroundMode5 (BGMode, bg, Z1, Z2);
+            return;
+        }
+        break;
     }
     CHECK_SOUND();
 
@@ -2017,9 +2041,9 @@ void DrawBackground (uint32 BGMode, uint32 bg, uint8 Z1, uint8 Z2)
     uint8 depths [2] = {Z1, Z2};
     
     if (BGMode == 0)
-	BG.StartPalette = bg << 5;
+        BG.StartPalette = bg << 5;
     else
-	BG.StartPalette = 0;
+        BG.StartPalette = 0;
 
     SC0 = (uint16 *) &Memory.VRAM[ppu->BG[bg].SCBase << 1];
 
@@ -2044,18 +2068,18 @@ void DrawBackground (uint32 BGMode, uint32 bg, uint8 Z1, uint8 Z2)
 
     if (BG.TileSize == 16)
     {
-	OffsetMask = 0x3ff;
-	OffsetShift = 4;
+        OffsetMask = 0x3ff;
+        OffsetShift = 4;
     }
     else
     {
-	OffsetMask = 0x1ff;
-	OffsetShift = 3;
+        OffsetMask = 0x1ff;
+        OffsetShift = 3;
     }
 
     for (uint32 Y = gfx->StartY; Y <= gfx->EndY; Y += Lines)
     {
-	uint32 VOffset = LineData [Y].BG[bg].VOffset;
+        uint32 VOffset = LineData [Y].BG[bg].VOffset;
 	uint32 HOffset = LineData [Y].BG[bg].HOffset;
 	int VirtAlign = (Y + VOffset) & 7;
 	
@@ -2103,8 +2127,13 @@ void DrawBackground (uint32 BGMode, uint32 bg, uint8 Z1, uint8 Z2)
 
 	    if (!gfx->pCurrentClip->Count [bg])
 	    {
+#ifdef _RS90  //only draw visible area
+		Left = 8;
+		Right = 248;
+#else
 		Left = 0;
 		Right = 256;
+#endif
 	    }
 	    else
 	    {
@@ -2338,8 +2367,8 @@ void DrawBackground (uint32 BGMode, uint32 bg, uint8 Z1, uint8 Z2)
     int aa, cc; \
     int dir; \
     int startx, endx; \
-    uint32 Left = 0; \
-    uint32 Right = 256; \
+    uint32 Left = 8; \
+    uint32 Right = 248; \
     uint32 ClipCount = gfx->pCurrentClip->Count [bg]; \
 \
     if (!ClipCount) \
@@ -2556,8 +2585,8 @@ void DrawBGMode7Background16Sub1_2 (uint8 *Screen, int bg)
     int aa, cc; \
     int dir; \
     int startx, endx; \
-    uint32 Left = 0; \
-    uint32 Right = 256; \
+    uint32 Left = 8; \
+    uint32 Right = 248; \
     uint32 ClipCount = GFX.pCurrentClip->Count [bg]; \
     \
     if (!ClipCount) \
@@ -3397,12 +3426,8 @@ void S9xUpdateScreen () // ~30-50ms! (called from FLUSH_REDRAW())
 	}
     }
 
-
-
     uint32 black = BLACK | (BLACK << 16);
-//#ifndef _ZAURUS
     if (Settings.Transparency && Settings.SixteenBit)
-//#endif
     {
 		if (gfx->Pseudo)
 		{
@@ -3436,7 +3461,10 @@ void S9xUpdateScreen () // ~30-50ms! (called from FLUSH_REDRAW())
 
 			for (uint32 y = starty; y <= endy; y++)
 			{
-
+#ifdef _RS90
+                if (y < 8* (1-Scale) || y > 224 - 6 * (1-Scale))
+                continue;
+#endif                  
 				ZeroMemory (gfx->SubZBuffer + y * gfx->ZPitch,
 					ippu->RenderedScreenWidth);
 				ZeroMemory (gfx->ZBuffer + y * gfx->ZPitch,
@@ -3488,6 +3516,10 @@ void S9xUpdateScreen () // ~30-50ms! (called from FLUSH_REDRAW())
 	    {
 		for (uint32 y = starty; y <= endy; y++)
 		{
+#ifdef _RS90
+            if (y < 8* (1-Scale) || y > 224 - 6 * (1-Scale))
+                continue;
+#endif  
 			ZeroMemory (gfx->ZBuffer + y * gfx->ZPitch,
 				ippu->RenderedScreenWidth);
 		    memset (gfx->SubZBuffer + y * gfx->ZPitch, 1,
@@ -3532,6 +3564,10 @@ void S9xUpdateScreen () // ~30-50ms! (called from FLUSH_REDRAW())
 		    {
 			for (uint32 y = starty; y <= endy; y++)
 			{
+#ifdef _RS90
+                if (y < 8* (1-Scale) || y > 224 - 6 * (1-Scale))
+                    continue;
+#endif  
 			    for (uint32 w = 0; w < ippu->Clip [1].Count [5]; w++)
 			    {
 				if (ippu->Clip [1].Right [w][5] >= ippu->Clip [1].Left [w][5])
@@ -3548,10 +3584,16 @@ void S9xUpdateScreen () // ~30-50ms! (called from FLUSH_REDRAW())
 		    }
 		    else
 		    {
-			for (uint32 y = starty; y <= endy; y++)
-			    memmove (gfx->Screen + y * gfx->Pitch2,
-				     gfx->SubScreen + y * gfx->Pitch2,
-				     ippu->RenderedScreenWidth * sizeof (uint16));
+                for (uint32 y = starty; y <= endy; y++)
+                {
+#ifdef _RS90
+                    if (y < 8* (1-Scale) || y > 224 - 6 * (1-Scale))
+                    continue;
+#endif  
+                    memmove (gfx->Screen + y * gfx->Pitch2,
+                         gfx->SubScreen + y * gfx->Pitch2,
+                         ippu->RenderedScreenWidth * sizeof (uint16));
+                }
 		    }
 		}
 		else
@@ -3560,6 +3602,10 @@ void S9xUpdateScreen () // ~30-50ms! (called from FLUSH_REDRAW())
 		    // For now just clear all of the scanlines
 		    for (uint32 y = starty; y <= endy; y++)
             {
+#ifdef _RS90
+                if (y < 8* (1-Scale) || y > 224 - 6 * (1-Scale))
+                    continue;
+#endif  
                 register uint32 *p = (uint32 *) (gfx->Screen + y * gfx->Pitch2);
                 uint32 *q = (uint32 *) ((uint16 *) p + ippu->RenderedScreenWidth);
 
@@ -3578,16 +3624,30 @@ void S9xUpdateScreen () // ~30-50ms! (called from FLUSH_REDRAW())
 	    if (SUB_OR_ADD(5))
 	    {
 		uint32 back = ippu->ScreenColors [0];
+#ifdef _RS90  //only draw visible area
+		uint32 Left = 8;
+		uint32 Right = 248;
+#else
 		uint32 Left = 0;
 		uint32 Right = 256;
-		uint32 Count;
+#endif
+        uint32 Count;
 
 		pClip = &ippu->Clip [0];
 
 		for (uint32 y = starty; y <= endy; y++) {
+#ifdef _RS90
+            if (y < 8* (1-Scale) || y > 224 - 6 * (1-Scale))
+                continue;
+#endif
 		    if (!(Count = pClip->Count [5])) {
-				Left = 0;
-				Right = 256 * x2;
+#ifdef _RS90  //only draw visible area
+                Left = 8;
+                Right = 248 * x2;
+#else
+                Left = 0;
+                Right = 256 * x2;
+#endif
 				Count = 1;
 		    }
 
@@ -3735,6 +3795,10 @@ void S9xUpdateScreen () // ~30-50ms! (called from FLUSH_REDRAW())
 
 			if (pClip->Count [5]) {
 				for (uint32 y = starty; y <= endy; y++) {
+#ifdef _RS90
+                    if (y < 8* (1-Scale) || y > 224 - 6 * (1-Scale))
+                        continue;
+#endif  
 					for (uint32 b = 0; b < pClip->Count [5]; b++) {
 						uint32 Left = pClip->Left [b][5] * x2;
 						uint32 Right = pClip->Right [b][5] * x2;
@@ -3752,6 +3816,10 @@ void S9xUpdateScreen () // ~30-50ms! (called from FLUSH_REDRAW())
 				}
 			} else {
 				for (uint32 y = starty; y <= endy; y++) {
+#ifdef _RS90
+                    if (y < 8* (1-Scale) || y > 224 - 6 * (1-Scale))
+                    continue;
+#endif  
 					register uint16 *p = (uint16 *) (gfx->Screen + y * gfx->Pitch2);
 					register uint8 *d = gfx->ZBuffer + y * gfx->ZPitch;
 					register uint8 *e = d + 256 * x2;
@@ -3775,6 +3843,10 @@ void S9xUpdateScreen () // ~30-50ms! (called from FLUSH_REDRAW())
 			back = black;
 	    if (ippu->Clip [0].Count[5]) {
 			for (uint32 y = starty; y <= endy; y++) {
+#ifdef _RS90
+                if (y < 8* (1-Scale) || y > 224 - 6 * (1-Scale))
+                    continue;
+#endif  
 				register uint32 *p = (uint32 *) (gfx->Screen + y * gfx->Pitch2);
 				uint32 *q = (uint32 *) ((uint16 *) p + ippu->RenderedScreenWidth);
 
@@ -3802,6 +3874,10 @@ void S9xUpdateScreen () // ~30-50ms! (called from FLUSH_REDRAW())
 			}
 	    } else {
 			for (uint32 y = starty; y <= endy; y++) {
+#ifdef _RS90
+                if (y < 8* (1-Scale) || y > 224 - 6 * (1-Scale))
+                    continue;
+#endif  
 				register uint32 *p = (uint32 *) (gfx->Screen + y * gfx->Pitch2);
 				uint32 *q = (uint32 *) ((uint16 *) p + ippu->RenderedScreenWidth);
 				while (p < q) {
@@ -3836,6 +3912,10 @@ void S9xUpdateScreen () // ~30-50ms! (called from FLUSH_REDRAW())
 		}
 	    for (uint32 y = starty; y <= endy; y++)
 	    {
+#ifdef _RS90
+            if (y < 8* (1-Scale) || y > 224 - 6 * (1-Scale))
+                continue;
+#endif  
 			register uint32 *p = (uint32 *) (gfx->Screen + y * gfx->Pitch2);
 			uint32 *q = (uint32 *) ((uint16 *) p + ippu->RenderedScreenWidth);
 			while (p < q) {
@@ -3989,6 +4069,10 @@ else \
 #endif
 		for (register uint32 y = gfx->StartY; y <= gfx->EndY; y++)
 		{
+#ifdef _RS90
+            if (y < 8* (1-Scale) || y > 224 - 6 * (1-Scale))
+                continue;
+#endif  
 		    register uint16 *p = (uint16 *) (gfx->Screen + y * gfx->Pitch) + 255;
 		    register uint16 *q = (uint16 *) (gfx->Screen + y * gfx->Pitch) + 510;
 		    for (register int x = 255; x >= 0; x--, p--, q -= 2)
@@ -4000,6 +4084,11 @@ else \
 	    {
 		for (register uint32 y = gfx->StartY; y <= gfx->EndY; y++)
 		{
+#ifdef _RS90
+            if (y < 8* (1-Scale) || y > 224 - 6 * (1-Scale))
+            continue;
+#endif  
+
 		    register uint8 *p = gfx->Screen + y * gfx->Pitch + 255;
 		    register uint8 *q = gfx->Screen + y * gfx->Pitch + 510;
 		    for (register int x = 255; x >= 0; x--, p--, q -= 2)
@@ -4015,6 +4104,10 @@ else \
 	    // pixels.
 	    for (uint32 y = gfx->StartY; y <= gfx->EndY; y++)
 	    {
+#ifdef _RS90
+            if (y < 8* (1-Scale) || y > 224 - 6 * (1-Scale))
+                continue;
+#endif  
 		memmove (gfx->Screen + (y * 2 + 1) * gfx->Pitch2,
 			 gfx->Screen + y * 2 * gfx->Pitch2,
 			 gfx->Pitch2);
