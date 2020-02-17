@@ -96,7 +96,7 @@
 	READ_WORD(DSP4.parameters+x)
 
 #define DSP4_WRITE_WORD(x,d) \
-	WRITE_WORD(DSP4.output+x,d);
+	WRITE_WORD(DSP4.output+x,d)
 
 // used to wait for dsp i/o
 #define DSP4_WAIT(x) \

@@ -130,7 +130,7 @@ typedef void (*SignalHandler)(int);
 #endif
 
 #define LSB_FIRST
-//#define FAST_LSB_WORD_ACCESS
+#define FAST_LSB_WORD_ACCESS
 
 #ifdef __linux
 #define TITLE "Snes9X: Linux"

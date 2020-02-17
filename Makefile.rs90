@@ -88,8 +88,10 @@ CCFLAGS  += -I.
 LDLIBS  = -lSDL -lz -lm
 
 ifeq ($(USE_GCOV), YES)
-CCFLAGS += -fprofile-generate=/media/data/local/home/profile
-PROFILE += -lgcov -fprofile-generate=/media/data/local/home/profile
+#CCFLAGS += -fprofile-generate=/media/data/local/home/profile
+#PROFILE += -lgcov -fprofile-generate=/media/data/local/home/profile
+CCFLAGS += -fprofile-arcs -ftest-coverage
+PROFILE += -lgcov -fprofile-arcs -ftest-coverage
 else ifeq ($(USE_GCOV), APPLY)
 CCFLAGS		+= -fprofile-use -fbranch-probabilities
 endif
@@ -100,7 +102,9 @@ all: snes9x4d.dge
 
 snes9x4d.dge: $(OBJECTS) 
 	$(CCC) -o $@ $(OBJECTS) $(EXTRALIBS) $(LDLIBS) $(PROFILE)
-#	$(STRIP) snes9x4d.dge
+ifeq ($(USE_GCOV), APPLY)
+	$(STRIP) snes9x4d.dge
+endif
 
 .cpp.o:
 	$(CCC) -c $(CCFLAGS) $*.cpp -o $@

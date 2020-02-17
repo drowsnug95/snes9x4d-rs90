@@ -606,10 +606,10 @@ inline void WRITE_4PIXELS16_ADD (uint32 Offset, uint8 *Pixels, struct SGFX * gfx
 	if (SubDepth [N]) \
 	{ \
 	    if (SubDepth [N] != 1) \
-		Screen [N] = COLOR_ADD (gfx->ScreenColors [Pixel], \
+		Screen [N] = color_add (gfx->ScreenColors [Pixel], \
 					Screen [gfx->Delta + N]); \
 	    else \
-		Screen [N] = COLOR_ADD (gfx->ScreenColors [Pixel], \
+		Screen [N] = color_add (gfx->ScreenColors [Pixel], \
 					fc); \
 	} \
 	else \
@@ -641,10 +641,10 @@ inline void WRITE_4PIXELS16_FLIPPED_ADD (uint32 Offset, uint8 *Pixels, struct SG
 	if (SubDepth [N]) \
 	{ \
 	    if (SubDepth [N] != 1) \
-		Screen [N] = COLOR_ADD (gfx->ScreenColors [Pixel], \
+		Screen [N] = color_add (gfx->ScreenColors [Pixel], \
 					Screen [gfx->Delta + N]); \
 	    else \
-		Screen [N] = COLOR_ADD (gfx->ScreenColors [Pixel], \
+		Screen [N] = color_add (gfx->ScreenColors [Pixel], \
 					fc); \
 	} \
 	else \
@@ -679,7 +679,7 @@ inline void WRITE_4PIXELS16_ADD1_2 (uint32 Offset, uint8 *Pixels, struct SGFX * 
 		Screen [N] = (uint16) (COLOR_ADD1_2 (gfx->ScreenColors [Pixel], \
 						     Screen [gfx->Delta + N])); \
 	    else \
-		Screen [N] = COLOR_ADD (gfx->ScreenColors [Pixel], \
+		Screen [N] = color_add (gfx->ScreenColors [Pixel], \
 					fc); \
 	} \
 	else \
@@ -714,7 +714,7 @@ inline void WRITE_4PIXELS16_FLIPPED_ADD1_2 (uint32 Offset, uint8 *Pixels, struct
 		Screen [N] = (uint16) (COLOR_ADD1_2 (gfx->ScreenColors [Pixel], \
 						     Screen [gfx->Delta + N])); \
 	    else \
-		Screen [N] = COLOR_ADD (gfx->ScreenColors [Pixel], \
+		Screen [N] = color_add (gfx->ScreenColors [Pixel], \
 					fc); \
 	} \
 	else \
@@ -746,10 +746,10 @@ inline void WRITE_4PIXELS16_SUB (uint32 Offset, uint8 *Pixels, struct SGFX * gfx
 	if (SubDepth [N]) \
 	{ \
 	    if (SubDepth [N] != 1) \
-		Screen [N] = (uint16) COLOR_SUB (gfx->ScreenColors [Pixel], \
+		Screen [N] = (uint16) color_sub (gfx->ScreenColors [Pixel], \
 					Screen [gfx->Delta + N]); \
 	    else \
-		Screen [N] = (uint16) COLOR_SUB (gfx->ScreenColors [Pixel], \
+		Screen [N] = (uint16) color_sub (gfx->ScreenColors [Pixel], \
 					fc); \
 	} \
 	else \
@@ -781,10 +781,10 @@ inline void WRITE_4PIXELS16_FLIPPED_SUB (uint32 Offset, uint8 *Pixels, struct SG
 	if (SubDepth [N]) \
 	{ \
 	    if (SubDepth [N] != 1) \
-		Screen [N] = (uint16) COLOR_SUB (gfx->ScreenColors [Pixel], \
+		Screen [N] = (uint16) color_sub (gfx->ScreenColors [Pixel], \
 					Screen [gfx->Delta + N]); \
 	    else \
-		Screen [N] = (uint16) COLOR_SUB (gfx->ScreenColors [Pixel], \
+		Screen [N] = (uint16) color_sub (gfx->ScreenColors [Pixel], \
 					fc); \
 	} \
 	else \
@@ -819,7 +819,7 @@ inline void WRITE_4PIXELS16_SUB1_2 (uint32 Offset, uint8 *Pixels, struct SGFX * 
 		Screen [N] = (uint16) COLOR_SUB1_2 (gfx->ScreenColors [Pixel], \
 					   Screen [gfx->Delta + N]); \
 	    else \
-		Screen [N] = (uint16) COLOR_SUB (gfx->ScreenColors [Pixel], \
+		Screen [N] = (uint16) color_sub (gfx->ScreenColors [Pixel], \
 					fc); \
 	} \
 	else \
@@ -854,7 +854,7 @@ inline void WRITE_4PIXELS16_FLIPPED_SUB1_2 (uint32 Offset, uint8 *Pixels, struct
 		Screen [N] = (uint16) COLOR_SUB1_2 (gfx->ScreenColors [Pixel], \
 					   Screen [gfx->Delta + N]); \
 	    else \
-		Screen [N] = (uint16) COLOR_SUB (gfx->ScreenColors [Pixel], \
+		Screen [N] = (uint16) color_sub (gfx->ScreenColors [Pixel], \
 					fc); \
 	} \
 	else \
@@ -1120,8 +1120,8 @@ void DrawLargePixel16Add (uint32 Tile, uint32 Offset,
 
 #define LARGE_ADD_PIXEL(s, p) \
 (Depth [z + gfx->DepthDelta] ? (Depth [z + gfx->DepthDelta] != 1 ? \
-			       COLOR_ADD (p, *(s + gfx->Delta))    : \
-			       COLOR_ADD (p, gfx->FixedColour)) \
+			       color_add (p, *(s + gfx->Delta))    : \
+			       color_add (p, gfx->FixedColour)) \
 			    : p)
 			      
     RENDER_TILE_LARGE (gfx->ScreenColors [pixel], LARGE_ADD_PIXEL)
@@ -1140,7 +1140,7 @@ void DrawLargePixel16Add1_2 (uint32 Tile, uint32 Offset,
 #define LARGE_ADD_PIXEL1_2(s, p) \
 ((uint16) (Depth [z + gfx->DepthDelta] ? (Depth [z + gfx->DepthDelta] != 1 ? \
 			       COLOR_ADD1_2 (p, *(s + gfx->Delta))    : \
-			       COLOR_ADD (p, gfx->FixedColour)) \
+			       color_add (p, gfx->FixedColour)) \
 			    : p))
 			      
     RENDER_TILE_LARGE (gfx->ScreenColors [pixel], LARGE_ADD_PIXEL1_2)
@@ -1158,8 +1158,8 @@ void DrawLargePixel16Sub (uint32 Tile, uint32 Offset,
 
 #define LARGE_SUB_PIXEL(s, p) \
 (Depth [z + gfx->DepthDelta] ? (Depth [z + gfx->DepthDelta] != 1 ? \
-			       COLOR_SUB (p, *(s + gfx->Delta))    : \
-			       COLOR_SUB (p, gfx->FixedColour)) \
+			       color_sub (p, *(s + gfx->Delta))    : \
+			       color_sub (p, gfx->FixedColour)) \
 			    : p)
 			      
     RENDER_TILE_LARGE (gfx->ScreenColors [pixel], LARGE_SUB_PIXEL)
@@ -1178,7 +1178,7 @@ void DrawLargePixel16Sub1_2 (uint32 Tile, uint32 Offset,
 #define LARGE_SUB_PIXEL1_2(s, p) \
 (Depth [z + gfx->DepthDelta] ? (Depth [z + gfx->DepthDelta] != 1 ? \
 			       COLOR_SUB1_2 (p, *(s + gfx->Delta))    : \
-			       COLOR_SUB (p, gfx->FixedColour)) \
+			       color_sub (p, gfx->FixedColour)) \
 			    : p)
 			      
     RENDER_TILE_LARGE (gfx->ScreenColors [pixel], LARGE_SUB_PIXEL1_2)

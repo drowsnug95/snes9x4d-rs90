@@ -7,7 +7,7 @@
 #define RSHIFT(X) (((X) & 0xF7DEF7DE) >>1)
 
 /*convert 208px to 160px by drowsnug */
-void downscale_208to160(uint32_t* __restrict__ dst, uint32_t* __restrict__ src)
+void downscale_208to160(uint32_t* __restrict__ dst, uint32_t* __restrict__ src, int width)
 {
     uint16_t y = 8;
     uint32_t* __restrict__ buffer_mem;
@@ -16,7 +16,7 @@ void downscale_208to160(uint32_t* __restrict__ dst, uint32_t* __restrict__ src)
 
     for(int H = 0; H < 53; H += 1)
     {
-	    buffer_mem = &src[y<<7];
+	    buffer_mem = &src[y * (width >> 1)];
         uint16_t x = 4;
         for(int W = 0; W < 120; W ++) 
         {
@@ -39,7 +39,7 @@ void downscale_208to160(uint32_t* __restrict__ dst, uint32_t* __restrict__ src)
 
 
 /*convert 224px to 160px by drowsnug */
-void downscale_224to160(uint32_t* __restrict__ dst,uint32_t* __restrict__ src)
+void downscale_224to160(uint32_t* __restrict__ dst,uint32_t* __restrict__ src, int width)
 {
     uint16_t y = 4;
     uint32_t* __restrict__ buffer_mem;
@@ -48,7 +48,7 @@ void downscale_224to160(uint32_t* __restrict__ dst,uint32_t* __restrict__ src)
     
     for(int H = 0; H < 32; H += 1)
     {
-	    buffer_mem = &src[y<<7];
+	    buffer_mem = &src[y * (width >> 1)];
         uint16_t x = 4;
         for(int W = 0; W < 120; W++) 
         {
