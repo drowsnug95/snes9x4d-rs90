@@ -123,7 +123,6 @@ void DrawLargePixel (uint32 Tile, uint32 Offset,
 		     uint32 StartPixel, uint32 Pixels,
 		     uint32 StartLine, uint32 LineCount, struct SGFX * gfx);
 #endif
-
 void DrawTile16 (uint32 Tile, uint32 Offset, uint32 StartLine,
 	         uint32 LineCount, struct SGFX * gfx);
 void DrawClippedTile16 (uint32 Tile, uint32 Offset,
@@ -2487,9 +2486,9 @@ void DrawBGMode7Background16Add (uint8 *Screen, int bg)
 
     RENDER_BACKGROUND_MODE7 (uint16, *(d + gfx->DepthDelta) ?
 					(*(d + gfx->DepthDelta) != 1 ?
-					    color_add (gfx->ScreenColors [b & gfx->Mode7Mask],
+					    COLOR_ADD (gfx->ScreenColors [b & gfx->Mode7Mask],
 						       p [gfx->Delta]) :
-					    color_add (gfx->ScreenColors [b & gfx->Mode7Mask],
+					    COLOR_ADD (gfx->ScreenColors [b & gfx->Mode7Mask],
 						       gfx->FixedColour)) :
 					 gfx->ScreenColors [b & gfx->Mode7Mask]);
 }
@@ -2503,7 +2502,7 @@ void DrawBGMode7Background16Add1_2 (uint8 *Screen, int bg)
 					(*(d + gfx->DepthDelta) != 1 ?
 					    COLOR_ADD1_2 (gfx->ScreenColors [b & gfx->Mode7Mask],
 						       p [gfx->Delta]) :
-					    color_add (gfx->ScreenColors [b & gfx->Mode7Mask],
+					    COLOR_ADD (gfx->ScreenColors [b & gfx->Mode7Mask],
 						       gfx->FixedColour)) :
 					 gfx->ScreenColors [b & gfx->Mode7Mask]);
 }
@@ -2515,9 +2514,9 @@ void DrawBGMode7Background16Sub (uint8 *Screen, int bg)
 
     RENDER_BACKGROUND_MODE7 (uint16, *(d + gfx->DepthDelta) ?
 					(*(d + gfx->DepthDelta) != 1 ?
-					    color_sub (gfx->ScreenColors [b & gfx->Mode7Mask],
+					    COLOR_SUB (gfx->ScreenColors [b & gfx->Mode7Mask],
 						       p [gfx->Delta]) :
-					    color_sub (gfx->ScreenColors [b & gfx->Mode7Mask],
+					    COLOR_SUB (gfx->ScreenColors [b & gfx->Mode7Mask],
 						       gfx->FixedColour)) :
 					 gfx->ScreenColors [b & gfx->Mode7Mask]);
 }
@@ -2531,7 +2530,7 @@ void DrawBGMode7Background16Sub1_2 (uint8 *Screen, int bg)
 					(*(d + gfx->DepthDelta) != 1 ?
 					    COLOR_SUB1_2 (gfx->ScreenColors [b & gfx->Mode7Mask],
 						       p [gfx->Delta]) :
-					    color_sub (gfx->ScreenColors [b & gfx->Mode7Mask],
+					    COLOR_SUB (gfx->ScreenColors [b & gfx->Mode7Mask],
 						       gfx->FixedColour)) :
 					 gfx->ScreenColors [b & gfx->Mode7Mask]);
 }
@@ -2553,7 +2552,6 @@ void DrawBGMode7Background16Sub1_2 (uint8 *Screen, int bg)
     int aa, cc; \
     int dir; \
     int startx, endx; \
-    /* for rs-90 */ \
     uint32 Left = 8; \
     uint32 Right = 248; \
     uint32 ClipCount = GFX.pCurrentClip->Count [bg]; \
@@ -2937,9 +2935,9 @@ void DrawBGMode7Background16Add_i (uint8 *Screen, int bg)
 {
     RENDER_BACKGROUND_MODE7_i (uint16, *(d + GFX.DepthDelta) ?
 					(*(d + GFX.DepthDelta) != 1 ?
-					    (color_add (theColor,
+					    (COLOR_ADD (theColor,
 						       p [GFX.Delta])) :
-					    (color_add (theColor,
+					    (COLOR_ADD (theColor,
 						       GFX.FixedColour))) :
 					 theColor, (GFX.ScreenColors[b & GFX.Mode7Mask]));
 }
@@ -2950,7 +2948,7 @@ void DrawBGMode7Background16Add1_2_i (uint8 *Screen, int bg)
 					(*(d + GFX.DepthDelta) != 1 ?
 					    COLOR_ADD1_2 (theColor,
 						          p [GFX.Delta]) :
-					    color_add (theColor,
+					    COLOR_ADD (theColor,
 						       GFX.FixedColour)) :
 					 theColor, (GFX.ScreenColors[b & GFX.Mode7Mask]));
 }
@@ -2959,9 +2957,9 @@ void DrawBGMode7Background16Sub_i (uint8 *Screen, int bg)
 {
     RENDER_BACKGROUND_MODE7_i (uint16, *(d + GFX.DepthDelta) ?
 					(*(d + GFX.DepthDelta) != 1 ?
-					    color_sub (theColor,
+					    COLOR_SUB (theColor,
 						       p [GFX.Delta]) :
-					    color_sub (theColor,
+					    COLOR_SUB (theColor,
 						       GFX.FixedColour)) :
 					 theColor, (GFX.ScreenColors[b & GFX.Mode7Mask]));
 }
@@ -2972,7 +2970,7 @@ void DrawBGMode7Background16Sub1_2_i (uint8 *Screen, int bg)
 					(*(d + GFX.DepthDelta) != 1 ?
 					    COLOR_SUB1_2 (theColor,
 						       p [GFX.Delta]) :
-					    color_sub (theColor,
+					    COLOR_SUB (theColor,
 						       GFX.FixedColour)) :
 					 theColor, (GFX.ScreenColors[b & GFX.Mode7Mask]));
 }
@@ -3635,7 +3633,7 @@ void S9xUpdateScreen () // ~30-50ms! (called from FLUSH_REDRAW())
 					register uint8 *d = gfx->ZBuffer + y * gfx->ZPitch;
 					register uint8 *s = gfx->SubZBuffer + y * gfx->ZPitch + Left;
 					register uint8 *e = d + Right;
-					uint16 back_fixed = color_sub (back, gfx->FixedColour);
+					uint16 back_fixed = COLOR_SUB (back, gfx->FixedColour);
 
 					d += Left;
 					while (d < e) {
@@ -3658,14 +3656,14 @@ void S9xUpdateScreen () // ~30-50ms! (called from FLUSH_REDRAW())
 					register uint8 *d = gfx->ZBuffer + y * gfx->ZPitch;
 					register uint8 *s = gfx->SubZBuffer + y * gfx->ZPitch + Left;
 					register uint8 *e = d + Right;
-					uint16 back_fixed = color_sub (back, gfx->FixedColour);
+					uint16 back_fixed = COLOR_SUB (back, gfx->FixedColour);
 
 					d += Left;
 					while (d < e) {
 					    if (*d == 0) {
 							if (*s) {
 							    if (*s != 1)
-									*p = color_sub (back, *(p + gfx->Delta));
+									*p = COLOR_SUB (back, *(p + gfx->Delta));
 							    else
 									*p = back_fixed;
 							} else
@@ -3682,7 +3680,7 @@ void S9xUpdateScreen () // ~30-50ms! (called from FLUSH_REDRAW())
 				register uint8 *d = gfx->ZBuffer + y * gfx->ZPitch;
 				register uint8 *s = gfx->SubZBuffer + y * gfx->ZPitch + Left;
 				register uint8 *e = d + Right;
-			    uint16 back_fixed = color_add (back, gfx->FixedColour);
+			    uint16 back_fixed = COLOR_ADD (back, gfx->FixedColour);
 
 			    d += Left;
 			    while (d < e) {
@@ -3707,14 +3705,14 @@ void S9xUpdateScreen () // ~30-50ms! (called from FLUSH_REDRAW())
 				register uint8 *d = gfx->ZBuffer + y * gfx->ZPitch;
 				register uint8 *s = gfx->SubZBuffer + y * gfx->ZPitch + Left;
 				register uint8 *e = d + Right;
-			    uint16 back_fixed = color_add (back, gfx->FixedColour);
+			    uint16 back_fixed = COLOR_ADD (back, gfx->FixedColour);
 
 			    d += Left;
 			    while (d < e) {
 					if (*d == 0) {
 					    if (*s) {
 							if (*s != 1)
-							    *p = color_add (back, *(p + gfx->Delta));
+							    *p = COLOR_ADD (back, *(p + gfx->Delta));
 							else	
 							    *p = back_fixed;
 					    } else

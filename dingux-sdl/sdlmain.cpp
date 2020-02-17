@@ -830,19 +830,19 @@ bool8_32 S9xDeinitUpdate (int Width, int Height)
 		{
             //for RS-90
 			if(Scale) {
-				downscale_224to160((uint32_t *)screen->pixels, (uint32_t *)GFX.Screen,512);  
+				downscale_224to160((uint32_t *)screen->pixels, (uint32_t *)GFX.Screen);  
 			} else {
-				downscale_208to160((uint32_t *)screen->pixels, (uint32_t *)GFX.Screen,512);
+				downscale_208to160((uint32_t *)screen->pixels, (uint32_t *)GFX.Screen);
             }
 		}
 	}
 	else
 	{
-		// if scaling for non-highres
+		// if scaling for non-highres (is centered)
 		if(Scale) {
-			downscale_224to160((uint32_t *)screen->pixels, (uint32_t *)GFX.Screen,256); 
+			downscale_224to160((uint32_t *)screen->pixels, (uint32_t *)GFX.Screen); 
 		} else {
-			downscale_208to160((uint32_t *)screen->pixels, (uint32_t *)GFX.Screen,256); 
+			downscale_208to160((uint32_t *)screen->pixels, (uint32_t *)GFX.Screen); 
 		}
 	}
 
