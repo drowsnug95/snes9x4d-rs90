@@ -344,12 +344,19 @@ bool8_32 S9xGraphicsInit ()
 
     if (Settings.SixteenBit)
     {
+#ifndef _RS90        
 	if (!(GFX.X2 = (uint16 *) malloc (sizeof (uint16) * 0x10000)))
 	    return (FALSE);
-
-	if (!(GFX.ZERO_OR_X2 = (uint16 *) malloc (sizeof (uint16) * 0x10000)) ||
-	    !(GFX.ZERO = (uint16 *) malloc (sizeof (uint16) * 0x10000)))
+#endif
+        
+	if (1
+#ifndef _RS90        
+        !(GFX.ZERO_OR_X2 = (uint16 *) malloc (sizeof (uint16) * 0x10000)) ||
+        !(GFX.ZERO = (uint16 *) malloc (sizeof (uint16) * 0x10000))
+#endif
+    )
 	{
+#ifndef _RS90        
 	    if (GFX.ZERO_OR_X2)
 	    {
 		free ((char *) GFX.ZERO_OR_X2);
@@ -361,6 +368,7 @@ bool8_32 S9xGraphicsInit ()
 		GFX.X2 = NULL;
 	    }
 	    return (FALSE);
+#endif
 	}
 	uint32 r, g, b;
         
@@ -387,16 +395,15 @@ bool8_32 S9xGraphicsInit ()
 		}
 	    }
 	}
-#else
         free ((char *) GFX.X2);
-#endif //ndef _RS90
-        
+#endif
+
+#ifndef _RS90       
 	ZeroMemory (GFX.ZERO, 0x10000 * sizeof (uint16));
 	ZeroMemory (GFX.ZERO_OR_X2, 0x10000 * sizeof (uint16));
 	// Build a lookup table that if the top bit of the color value is zero
 	// then the value is zero, otherwise multiply the value by 2. Used by
 	// the color subtraction code.
-#ifndef _RS90
         for (r = 0; r <= MAX_RED; r++)
         {
             uint32 r2 = r;
@@ -432,46 +439,49 @@ bool8_32 S9xGraphicsInit ()
                 }
             }
         }   
-#else
         free ((char *) GFX.ZERO_OR_X2);
 #endif
 
+#ifndef _RS90
 	// Build a lookup table that if the top bit of the color value is zero
 	// then the value is zero, otherwise its just the value.
 	for (r = 0; r <= MAX_RED; r++)
 	{
 	    uint32 r2 = r;
 	    if ((r2 & 0x10) == 0)
-		r2 = 0;
+            r2 = 0;
 	    else
-		r2 &= ~0x10;
+            r2 &= ~0x10;
 
 	    for (g = 0; g <= MAX_GREEN; g++)
 	    {
-		uint32 g2 = g;
-		if ((g2 & GREEN_HI_BIT) == 0)
-		    g2 = 0;
-		else
-		    g2 &= ~GREEN_HI_BIT;
-		for (b = 0; b <= MAX_BLUE; b++)
-		{
-		    uint32 b2 = b;
-		    if ((b2 & 0x10) == 0)
-			b2 = 0;
-		    else
-			b2 &= ~0x10;
+            uint32 g2 = g;
+            if ((g2 & GREEN_HI_BIT) == 0)
+                g2 = 0;
+            else
+                g2 &= ~GREEN_HI_BIT;
+            for (b = 0; b <= MAX_BLUE; b++)
+            {
+                uint32 b2 = b;
+                if ((b2 & 0x10) == 0)
+                    b2 = 0;
+                else
+                    b2 &= ~0x10;
 
-		    GFX.ZERO [BUILD_PIXEL2 (r, g, b)] = BUILD_PIXEL2 (r2, g2, b2);
-		    GFX.ZERO [BUILD_PIXEL2 (r, g, b) & ~ALPHA_BITS_MASK] = BUILD_PIXEL2 (r2, g2, b2);
-		}
+                GFX.ZERO [BUILD_PIXEL2 (r, g, b)] = BUILD_PIXEL2 (r2, g2, b2);
+                GFX.ZERO [BUILD_PIXEL2 (r, g, b) & ~ALPHA_BITS_MASK] = BUILD_PIXEL2 (r2, g2, b2);
+            }
 	    }
 	}
+#endif
     }
     else
     {
+#ifndef _RS90        
 	GFX.X2 = NULL;
 	GFX.ZERO_OR_X2 = NULL;
-	GFX.ZERO = NULL;
+    GFX.ZERO = NULL;
+#endif
     }
 
     return (TRUE);
@@ -480,6 +490,7 @@ bool8_32 S9xGraphicsInit ()
 void S9xGraphicsDeinit (void)
 {
     // Free any memory allocated in S9xGraphicsInit
+#ifndef _RS90        
     if (GFX.X2)
     {
 	free ((char *) GFX.X2);
@@ -489,12 +500,14 @@ void S9xGraphicsDeinit (void)
     {
 	free ((char *) GFX.ZERO_OR_X2);
 	GFX.ZERO_OR_X2 = NULL;
-    }
+    }    
     if (GFX.ZERO)
     {
 	free ((char *) GFX.ZERO);
 	GFX.ZERO = NULL;
     }
+#endif
+    return;
 }
 
 void S9xBuildDirectColourMaps ()
@@ -2525,7 +2538,11 @@ void DrawBGMode7Background16Sub1_2 (uint8 *Screen, int bg)
 {
 	struct SPPU * ppu = &PPU;
 	struct SGFX * gfx = &GFX; 
-
+#ifdef _RS90
+    RENDER_BACKGROUND_MODE7 (uint16, *(d + gfx->DepthDelta) ?
+					COLOR_SUB (gfx->ScreenColors [b & gfx->Mode7Mask],gfx->FixedColour):
+					 		gfx->ScreenColors [b & gfx->Mode7Mask]);
+#else
     RENDER_BACKGROUND_MODE7 (uint16, *(d + gfx->DepthDelta) ?
 					(*(d + gfx->DepthDelta) != 1 ?
 					    COLOR_SUB1_2 (gfx->ScreenColors [b & gfx->Mode7Mask],
@@ -2533,6 +2550,7 @@ void DrawBGMode7Background16Sub1_2 (uint8 *Screen, int bg)
 					    COLOR_SUB (gfx->ScreenColors [b & gfx->Mode7Mask],
 						       gfx->FixedColour)) :
 					 gfx->ScreenColors [b & gfx->Mode7Mask]);
+#endif
 }
 
 #ifndef _ZAURUS
@@ -3639,9 +3657,11 @@ void S9xUpdateScreen () // ~30-50ms! (called from FLUSH_REDRAW())
 					while (d < e) {
 					    if (*d == 0) {
 							if (*s) {
+                                #ifndef _RS90
 							    if (*s != 1)
 									*p = COLOR_SUB1_2 (back, *(p + gfx->Delta));
 							    else
+                                #endif
 									*p = back_fixed;
 							} else
 							    *p = (uint16) back;

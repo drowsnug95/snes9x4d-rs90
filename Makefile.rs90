@@ -60,7 +60,8 @@ GASM	= mipsel-linux-g++
 INCLUDES=
 
 OPTIMISE = -D_ZAURUS -D_RS90 -Ofast -mips32 \
-			-ffast-math -fomit-frame-pointer -fno-strength-reduce
+			-ffast-math -fomit-frame-pointer -fno-strength-reduce \
+            -falign-functions=2 -fno-stack-protector
 
 CCFLAGS = $(OPTIMISE) $(PROFILE) \
 -I$(DINGOOSDL) \
