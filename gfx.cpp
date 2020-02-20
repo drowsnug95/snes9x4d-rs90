@@ -1426,10 +1426,6 @@ void DrawBackgroundOffset (uint32 BGMode, uint32 bg, uint8 Z1, uint8 Z2)
 
     for (uint32 Y = gfx->StartY; Y <= gfx->EndY; Y++)
     {
-#ifdef _RS90
-	if (Y < 8* (1-Scale) || Y > 224 - 6 * (1-Scale))
-        continue;
-#endif  
 	uint32 VOff = LineData [Y].BG[2].VOffset;
 	uint32 HOff = LineData [Y].BG[2].HOffset;
 	int VirtAlign;
@@ -3335,6 +3331,13 @@ void S9xUpdateScreen () // ~30-50ms! (called from FLUSH_REDRAW())
     if ((gfx->EndY = ippu->CurrentLine - 1) >= PPU.ScreenHeight)
 		gfx->EndY = PPU.ScreenHeight - 1;
 
+#ifdef _RS90
+    if(gfx->StartY < 8* (1-Scale))
+        gfx->StartY = 8;
+    if(gfx->EndY > 224 - 6 * (1-Scale))
+        gfx->EndY = 218;
+#endif
+    
     uint32 starty = gfx->StartY;
     uint32 endy = gfx->EndY;
 
@@ -3446,10 +3449,6 @@ void S9xUpdateScreen () // ~30-50ms! (called from FLUSH_REDRAW())
 
 			for (uint32 y = starty; y <= endy; y++)
 			{
-#ifdef _RS90
-                if (y < 8* (1-Scale) || y > 224 - 6 * (1-Scale))
-                continue;
-#endif                  
 				ZeroMemory (gfx->SubZBuffer + y * gfx->ZPitch,
 					ippu->RenderedScreenWidth);
 				ZeroMemory (gfx->ZBuffer + y * gfx->ZPitch,
@@ -3501,10 +3500,6 @@ void S9xUpdateScreen () // ~30-50ms! (called from FLUSH_REDRAW())
 	    {
 		for (uint32 y = starty; y <= endy; y++)
 		{
-#ifdef _RS90
-            if (y < 8* (1-Scale) || y > 224 - 6 * (1-Scale))
-                continue;
-#endif  
 			ZeroMemory (gfx->ZBuffer + y * gfx->ZPitch,
 				ippu->RenderedScreenWidth);
 		    memset (gfx->SubZBuffer + y * gfx->ZPitch, 1,
@@ -3549,10 +3544,6 @@ void S9xUpdateScreen () // ~30-50ms! (called from FLUSH_REDRAW())
 		    {
 			for (uint32 y = starty; y <= endy; y++)
 			{
-#ifdef _RS90
-                if (y < 8* (1-Scale) || y > 224 - 6 * (1-Scale))
-                    continue;
-#endif  
 			    for (uint32 w = 0; w < ippu->Clip [1].Count [5]; w++)
 			    {
 				if (ippu->Clip [1].Right [w][5] >= ippu->Clip [1].Left [w][5])
@@ -3571,10 +3562,6 @@ void S9xUpdateScreen () // ~30-50ms! (called from FLUSH_REDRAW())
 		    {
                 for (uint32 y = starty; y <= endy; y++)
                 {
-#ifdef _RS90
-                    if (y < 8* (1-Scale) || y > 224 - 6 * (1-Scale))
-                    continue;
-#endif  
                     memmove (gfx->Screen + y * gfx->Pitch2,
                          gfx->SubScreen + y * gfx->Pitch2,
                          ippu->RenderedScreenWidth * sizeof (uint16));
@@ -3587,10 +3574,6 @@ void S9xUpdateScreen () // ~30-50ms! (called from FLUSH_REDRAW())
 		    // For now just clear all of the scanlines
 		    for (uint32 y = starty; y <= endy; y++)
             {
-#ifdef _RS90
-                if (y < 8* (1-Scale) || y > 224 - 6 * (1-Scale))
-                    continue;
-#endif  
                 register uint32 *p = (uint32 *) (gfx->Screen + y * gfx->Pitch2);
                 uint32 *q = (uint32 *) ((uint16 *) p + ippu->RenderedScreenWidth);
 
@@ -3621,10 +3604,6 @@ void S9xUpdateScreen () // ~30-50ms! (called from FLUSH_REDRAW())
 		pClip = &ippu->Clip [0];
 
 		for (uint32 y = starty; y <= endy; y++) {
-#ifdef _RS90
-            if (y < 8* (1-Scale) || y > 224 - 6 * (1-Scale))
-                continue;
-#endif
 		    if (!(Count = pClip->Count [5])) {
 #ifdef _RS90  //only draw visible area
                 Left = 8;
@@ -3782,10 +3761,6 @@ void S9xUpdateScreen () // ~30-50ms! (called from FLUSH_REDRAW())
 
 			if (pClip->Count [5]) {
 				for (uint32 y = starty; y <= endy; y++) {
-#ifdef _RS90
-                    if (y < 8* (1-Scale) || y > 224 - 6 * (1-Scale))
-                        continue;
-#endif  
 					for (uint32 b = 0; b < pClip->Count [5]; b++) {
 						uint32 Left = pClip->Left [b][5] * x2;
 						uint32 Right = pClip->Right [b][5] * x2;
@@ -3803,10 +3778,6 @@ void S9xUpdateScreen () // ~30-50ms! (called from FLUSH_REDRAW())
 				}
 			} else {
 				for (uint32 y = starty; y <= endy; y++) {
-#ifdef _RS90
-                    if (y < 8* (1-Scale) || y > 224 - 6 * (1-Scale))
-                    continue;
-#endif  
 					register uint16 *p = (uint16 *) (gfx->Screen + y * gfx->Pitch2);
 					register uint8 *d = gfx->ZBuffer + y * gfx->ZPitch;
 					register uint8 *e = d + 256 * x2;
@@ -3830,10 +3801,6 @@ void S9xUpdateScreen () // ~30-50ms! (called from FLUSH_REDRAW())
 			back = black;
 	    if (ippu->Clip [0].Count[5]) {
 			for (uint32 y = starty; y <= endy; y++) {
-#ifdef _RS90
-                if (y < 8* (1-Scale) || y > 224 - 6 * (1-Scale))
-                    continue;
-#endif  
                 register uint32 *p = (uint32 *) (gfx->Screen + y * gfx->Pitch2);
 				uint32 *q = (uint32 *) ((uint16 *) p + ippu->RenderedScreenWidth);
 
@@ -3861,10 +3828,6 @@ void S9xUpdateScreen () // ~30-50ms! (called from FLUSH_REDRAW())
 			}
 	    } else {
 			for (uint32 y = starty; y <= endy; y++) {
-#ifdef _RS90
-                if (y < 8* (1-Scale) || y > 224 - 6 * (1-Scale))
-                continue;
-#endif  
 				register uint32 *p = (uint32 *) (gfx->Screen + y * gfx->Pitch2);
 				uint32 *q = (uint32 *) ((uint16 *) p + ippu->RenderedScreenWidth);
 				while (p < q) {
@@ -3877,10 +3840,6 @@ void S9xUpdateScreen () // ~30-50ms! (called from FLUSH_REDRAW())
 	    }
 	    if (!PPU.ForcedBlanking) {
 			for (uint32 y = starty; y <= endy; y++) {
-#ifdef _RS90
-                if (y < 8* (1-Scale) || y > 224 - 6 * (1-Scale))
-                    continue;
-#endif  
 				ZeroMemory (gfx->ZBuffer + y * gfx->ZPitch,
 					ippu->RenderedScreenWidth);
 			}
@@ -3903,10 +3862,6 @@ void S9xUpdateScreen () // ~30-50ms! (called from FLUSH_REDRAW())
 		}
 	    for (uint32 y = starty; y <= endy; y++)
 	    {
-#ifdef _RS90
-            if (y < 8* (1-Scale) || y > 224 - 6 * (1-Scale))
-                continue;
-#endif  
             register uint32 *p = (uint32 *) (gfx->Screen + y * gfx->Pitch2);
 			uint32 *q = (uint32 *) ((uint16 *) p + ippu->RenderedScreenWidth);
 			while (p < q) {
@@ -3929,10 +3884,6 @@ void S9xUpdateScreen () // ~30-50ms! (called from FLUSH_REDRAW())
 	{
 	    for (uint32 y = starty; y <= endy; y++)
 	    {
-#ifdef _RS90
-            if (y < 8* (1-Scale) || y > 224 - 6 * (1-Scale))
-                continue;
-#endif
             ZeroMemory (gfx->ZBuffer + y * gfx->ZPitch,
 			    ippu->RenderedScreenWidth);
 	    }
@@ -4064,10 +4015,6 @@ else \
 #endif
 		for (register uint32 y = gfx->StartY; y <= gfx->EndY; y++)
 		{
-#ifdef _RS90
-            if (y < 8* (1-Scale) || y > 224 - 6 * (1-Scale))
-                continue;
-#endif  
 		    register uint16 *p = (uint16 *) (gfx->Screen + y * gfx->Pitch) + 255;
 		    register uint16 *q = (uint16 *) (gfx->Screen + y * gfx->Pitch) + 510;
 		    for (register int x = 255; x >= 0; x--, p--, q -= 2)
