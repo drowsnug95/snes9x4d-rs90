@@ -815,10 +815,10 @@ inline void WRITE_4PIXELS16_SUB1_2 (uint32 Offset, uint8 *Pixels, struct SGFX * 
     { \
 	if (SubDepth [N]) \
 	{ \
-/*	    if (SubDepth [N] != 1) \
+	    if (SubDepth [N] != 1) \
 		Screen [N] = (uint16) COLOR_SUB1_2 (gfx->ScreenColors [Pixel], \
 					   Screen [gfx->Delta + N]); \
-	    else  */\
+	    else  \
 		Screen [N] = (uint16) COLOR_SUB (gfx->ScreenColors [Pixel], fc); \
 	} \
 	else \
@@ -849,10 +849,10 @@ inline void WRITE_4PIXELS16_FLIPPED_SUB1_2 (uint32 Offset, uint8 *Pixels, struct
     { \
 	if (SubDepth [N]) \
 	{ \
-/*	    if (SubDepth [N] != 1) \
+	    if (SubDepth [N] != 1) \
 		Screen [N] = (uint16) COLOR_SUB1_2 (gfx->ScreenColors [Pixel], \
 					   Screen [gfx->Delta + N]); \
-	    else */\
+	    else \
 		Screen [N] = (uint16) COLOR_SUB (gfx->ScreenColors [Pixel], fc); \
 	} \
 	else \
@@ -1020,10 +1020,10 @@ inline void WRITE_4PIXELS16_SUBF1_2 (uint32 Offset, uint8 *Pixels, struct SGFX *
 #define FN(N) \
     if (z1 > Depth [N] && (Pixel = Pixels[N])) \
     { \
-/*	if (SubDepth [N] == 1) \
+	if (SubDepth [N] == 1) \
 	    Screen [N] = (uint16) COLOR_SUB1_2 (gfx->ScreenColors [Pixel], \
 						fc); \
-	else */\
+	else \
 	    Screen [N] = gfx->ScreenColors [Pixel]; \
 	Depth [N] = z2; \
     }
@@ -1048,10 +1048,10 @@ inline void WRITE_4PIXELS16_FLIPPED_SUBF1_2 (uint32 Offset, uint8 *Pixels, struc
 #define FN(N) \
     if (z1 > Depth [N] && (Pixel = Pixels[3 - N])) \
     { \
-/*	if (SubDepth [N] == 1) \
+	if (SubDepth [N] == 1) \
 	    Screen [N] = (uint16) COLOR_SUB1_2 (gfx->ScreenColors [Pixel], \
 						gfx->FixedColour); \
-	else */\
+	else \
 	    Screen [N] = gfx->ScreenColors [Pixel]; \
 	Depth [N] = z2; \
     }
@@ -1172,16 +1172,11 @@ void DrawLargePixel16Sub1_2 (uint32 Tile, uint32 Offset,
     register uint16 *sp = (uint16 *) gfx->S + Offset;
     uint8  *Depth = gfx->ZBuffer + Offset;
     uint16 pixel;
-#ifdef _RS90
-#define LARGE_SUB_PIXEL1_2(s, p) \
-(Depth [z + gfx->DepthDelta] ? COLOR_SUB (p, gfx->FixedColour) : p)
-#else
 #define LARGE_SUB_PIXEL1_2(s, p) \
 (Depth [z + gfx->DepthDelta] ? (Depth [z + gfx->DepthDelta] != 1 ? \
 			       COLOR_SUB1_2 (p, *(s + gfx->Delta))    : \
 			       COLOR_SUB (p, gfx->FixedColour)) \
 			    : p)
-#endif
     
     RENDER_TILE_LARGE (gfx->ScreenColors [pixel], LARGE_SUB_PIXEL1_2)
 }

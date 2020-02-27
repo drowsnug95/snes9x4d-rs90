@@ -2534,11 +2534,7 @@ void DrawBGMode7Background16Sub1_2 (uint8 *Screen, int bg)
 {
 	struct SPPU * ppu = &PPU;
 	struct SGFX * gfx = &GFX; 
-#ifdef _RS90
-    RENDER_BACKGROUND_MODE7 (uint16, *(d + gfx->DepthDelta) ?
-					COLOR_SUB (gfx->ScreenColors [b & gfx->Mode7Mask],gfx->FixedColour):
-					 		gfx->ScreenColors [b & gfx->Mode7Mask]);
-#else
+    
     RENDER_BACKGROUND_MODE7 (uint16, *(d + gfx->DepthDelta) ?
 					(*(d + gfx->DepthDelta) != 1 ?
 					    COLOR_SUB1_2 (gfx->ScreenColors [b & gfx->Mode7Mask],
@@ -2546,7 +2542,6 @@ void DrawBGMode7Background16Sub1_2 (uint8 *Screen, int bg)
 					    COLOR_SUB (gfx->ScreenColors [b & gfx->Mode7Mask],
 						       gfx->FixedColour)) :
 					 gfx->ScreenColors [b & gfx->Mode7Mask]);
-#endif
 }
 
 #ifndef _ZAURUS
@@ -3636,11 +3631,9 @@ void S9xUpdateScreen () // ~30-50ms! (called from FLUSH_REDRAW())
 					while (d < e) {
 					    if (*d == 0) {
 							if (*s) {
-                                #ifndef _RS90
 							    if (*s != 1)
 									*p = COLOR_SUB1_2 (back, *(p + gfx->Delta));
 							    else
-                                #endif
 									*p = back_fixed;
 							} else
 							    *p = (uint16) back;
