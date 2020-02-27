@@ -9,7 +9,7 @@
 /*convert 208px to 160px by drowsnug */
 void downscale_208to160(uint32_t* __restrict__ dst, uint32_t* __restrict__ src)
 {
-    uint16_t y = 8;
+    uint16_t y = 6;
     uint32_t* __restrict__ buffer_mem;
     
     const uint16_t ix = 1, iy = 4;
